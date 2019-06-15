@@ -182,5 +182,5 @@ public class ScreenRecordActivity extends Activity {
                     break;
             }
         }
-    };
+    }
 }
