@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.utils;
+package com.flyzebra.utils;
 
 public interface RecordScreenController extends CallbackController<RecordScreenController.RecordScreenListener> {
 

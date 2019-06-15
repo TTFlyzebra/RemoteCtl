@@ -17,8 +17,8 @@ import android.widget.TextView;
 
 import android.view.KeyEvent;
 
-import com.flyzebra.screenrecord.utils.CommonUtil;
-import com.flyzebra.screenrecord.utils.ScreenUtil;
+import com.flyzebra.utils.CommonUtil;
+import com.flyzebra.utils.ScreenUtil;
 
 
 public class ScreenRecordActivity extends Activity {

@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.utils;
+package com.flyzebra.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;

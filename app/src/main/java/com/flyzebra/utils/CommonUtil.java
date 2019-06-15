@@ -1,8 +1,6 @@
-package com.flyzebra.screenrecord.utils;
+package com.flyzebra.utils;
 
-import android.app.Activity;
 import android.util.DisplayMetrics;
-import android.view.Display;
 import android.content.Context;
 import android.app.Application;
 import android.view.WindowManager;
