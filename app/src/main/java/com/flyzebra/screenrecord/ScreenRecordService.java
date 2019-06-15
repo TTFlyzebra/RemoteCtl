@@ -32,6 +32,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.flyzebra.screenrecord.utils.CommonUtil;
+import com.flyzebra.screenrecord.utils.FileUtil;
+import com.flyzebra.screenrecord.utils.ScreenUtil;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -283,13 +287,10 @@ public class ScreenRecordService extends Service implements Handler.Callback {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
-
             case MSG_TYPE_COUNT_DOWN: {
-
                 String str = null;
                 boolean enough = FileUtil.getSDFreeMemory() / (1024 * 1024) < 4;
                 if (enough) {

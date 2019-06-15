@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord;
+package com.flyzebra.screenrecord.utils;
 
 import android.app.Activity;
 import android.util.DisplayMetrics;

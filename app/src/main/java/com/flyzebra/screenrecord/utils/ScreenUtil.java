@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord;
+package com.flyzebra.screenrecord.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,6 +11,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 import android.util.Log;
+
+import com.flyzebra.screenrecord.ScreenRecordService;
 
 public class ScreenUtil {
 
@@ -63,8 +65,8 @@ public class ScreenUtil {
 
                 if (!mScreenRecordService.isReady()){
 
-                    MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) activity.
-                            getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+                    MediaProjectionManager mediaProjectionManager =
+                            (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
                     if (mediaProjectionManager != null){
                         Intent intent = mediaProjectionManager.createScreenCaptureIntent();
                         PackageManager packageManager = activity.getPackageManager();

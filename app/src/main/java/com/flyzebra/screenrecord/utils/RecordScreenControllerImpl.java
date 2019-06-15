@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord;
+package com.flyzebra.screenrecord.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.content.Intent;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 import android.util.Log;
+
+import com.flyzebra.screenrecord.ScreenRecordActivity;
 
 /** Platform implementation of the rotation lock controller. **/
 public final class RecordScreenControllerImpl implements RecordScreenController {
@@ -39,7 +41,7 @@ public final class RecordScreenControllerImpl implements RecordScreenController 
             Intent intent = new Intent(mContext,ScreenRecordActivity.class);
             mContext.startActivity(intent);
         }else if(!ScreenUtil.isRecordScreen()){
-            ScreenRecordActivity.instance.collapseStatusBar();
+//            ScreenRecordActivity.instance.collapseStatusBar();
             Intent intent = new Intent(mContext,ScreenRecordActivity.class);
             intent.putExtra("srartRecordScreen",true);
             mContext.startActivity(intent);

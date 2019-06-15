@@ -1,6 +1,5 @@
 package com.flyzebra.screenrecord;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -9,8 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.content.Context;
-import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Window;
@@ -20,7 +17,8 @@ import android.widget.TextView;
 
 import android.view.KeyEvent;
 
-import java.lang.reflect.Method;
+import com.flyzebra.screenrecord.utils.CommonUtil;
+import com.flyzebra.screenrecord.utils.ScreenUtil;
 
 
 public class ScreenRecordActivity extends Activity {
@@ -44,7 +42,7 @@ public class ScreenRecordActivity extends Activity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        collapseStatusBar();
+//        collapseStatusBar();
         setContentView(R.layout.screen_record_activity);
         CommonUtil.init(this.getApplication());
         mTvTime = findViewById(R.id.count_text);
@@ -72,24 +70,24 @@ public class ScreenRecordActivity extends Activity {
         mHandler.sendMessageDelayed(msg, 10);
     }
 
-    /**
-     * collapse status bar
-     *
-     */
-    public void collapseStatusBar() {
-        try {
-            @SuppressLint("WrongConstant") Object statusBarManager = this.getSystemService("statusbar");
-            Method collapse;
-            if (Build.VERSION.SDK_INT <= 16) {
-                collapse = statusBarManager.getClass().getMethod("collapse");
-            } else {
-                collapse = statusBarManager.getClass().getMethod("collapsePanels");
-            }
-            collapse.invoke(statusBarManager);
-        } catch (Exception localException) {
-            localException.printStackTrace();
-        }
-    }
+//    /**
+//     * collapse status bar
+//     *
+//     */
+//    public void collapseStatusBar() {
+//        try {
+//            @SuppressLint("WrongConstant") Object statusBarManager = this.getSystemService("statusbar");
+//            Method collapse;
+//            if (Build.VERSION.SDK_INT <= 16) {
+//                collapse = statusBarManager.getClass().getMethod("collapse");
+//            } else {
+//                collapse = statusBarManager.getClass().getMethod("collapsePanels");
+//            }
+//            collapse.invoke(statusBarManager);
+//        } catch (Exception localException) {
+//            localException.printStackTrace();
+//        }
+//    }
 
     private ServiceConnection mServiceConnection;
 
