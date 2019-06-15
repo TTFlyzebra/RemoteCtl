@@ -9,6 +9,8 @@ import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.LocalSocket;
+import android.net.LocalSocketAddress;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
@@ -251,7 +253,17 @@ public class ScreenRecordService extends Service implements Handler.Callback {
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setOutputFile(mRecordFilePath);
+//        mMediaRecorder.setOutputFile(mRecordFilePath);
+        LocalSocket clientSocket = new LocalSocket();
+        try {
+            clientSocket.connect(new LocalSocketAddress("flyzebra_screenrecord"));
+            clientSocket.setReceiveBufferSize(8 * 1024 * 1024);
+            clientSocket.setSoTimeout(3000);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mMediaRecorder.setOutputFile(clientSocket.getFileDescriptor());
         mMediaRecorder.setVideoSize(mRecordWidth, mRecordHeight);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
