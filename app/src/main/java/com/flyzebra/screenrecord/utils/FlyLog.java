@@ -7,7 +7,7 @@ import android.util.Log;
  * Created by FlyZebra on 2016/3/24.
  */
 public class FlyLog {
-    public static final String TAG = "flyui";
+    public static final String TAG = "fly_recorder";
     public static String[] filter = {
     };
 

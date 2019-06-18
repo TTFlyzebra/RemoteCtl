@@ -36,14 +36,14 @@ public class MainActivity extends Activity {
 
     public void verifyPermissions() {
         List<String> applyPerms = new ArrayList<>();
-        for(String permission: mPermissions){
-            if(ActivityCompat.checkSelfPermission(this, permission)!=PackageManager.PERMISSION_GRANTED){
+        for (String permission : mPermissions) {
+            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 applyPerms.add(permission);
             }
         }
-        if(!applyPerms.isEmpty()){
+        if (!applyPerms.isEmpty()) {
             ActivityCompat.requestPermissions(this, applyPerms.toArray(new String[applyPerms.size()]), REQUEST_CODE);
-        }else{
+        } else {
             //TODO::RUN
             isPermission = true;
         }
@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
                     break;
                 }
             }
-            if(authorized){
+            if (authorized) {
                 //TODO::RUN
                 isPermission = true;
             }
@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
     }
 
     public void startRecord(View view) {
-        if(isPermission){
+        if (isPermission) {
             moveTaskToBack(true);
         }
     }
