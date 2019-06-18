@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord;
+package com.flyzebra.screenrecord.ui;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -15,6 +15,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.flyzebra.screenrecord.R;
+import com.flyzebra.screenrecord.service.ScreenRecordService;
 import com.flyzebra.screenrecord.utils.CommonUtil;
 import com.flyzebra.screenrecord.utils.ScreenUtil;
 

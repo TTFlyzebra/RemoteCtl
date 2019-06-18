@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.flyzebra.screenrecord.ScreenRecordActivity;
+import com.flyzebra.screenrecord.ui.ScreenRecordActivity;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 

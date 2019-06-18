@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord;
+package com.flyzebra.screenrecord.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -32,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.flyzebra.screenrecord.R;
 import com.flyzebra.screenrecord.utils.CommonUtil;
 import com.flyzebra.screenrecord.utils.FileUtil;
 import com.flyzebra.screenrecord.utils.ScreenUtil;

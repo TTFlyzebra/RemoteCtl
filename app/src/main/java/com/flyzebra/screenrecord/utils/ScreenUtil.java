@@ -8,7 +8,7 @@ import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.util.Log;
 
-import com.flyzebra.screenrecord.ScreenRecordService;
+import com.flyzebra.screenrecord.service.ScreenRecordService;
 
 import java.util.ArrayList;
 import java.util.List;

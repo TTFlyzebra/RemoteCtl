@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public class MainActivity extends Activity {
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+    private boolean isPermission = false;
     private final int REQUEST_CODE = 102;
 
     @Override
@@ -40,10 +42,10 @@ public class MainActivity extends Activity {
             }
         }
         if(!applyPerms.isEmpty()){
-            ActivityCompat.requestPermissions(this, (String[]) applyPerms.toArray(), REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, applyPerms.toArray(new String[applyPerms.size()]), REQUEST_CODE);
         }else{
             //TODO::RUN
-            moveTaskToBack(true);
+            isPermission = true;
         }
     }
 
@@ -61,8 +63,14 @@ public class MainActivity extends Activity {
             }
             if(authorized){
                 //TODO::RUN
-                moveTaskToBack(true);
+                isPermission = true;
             }
+        }
+    }
+
+    public void startRecord(View view) {
+        if(isPermission){
+            moveTaskToBack(true);
         }
     }
 }
