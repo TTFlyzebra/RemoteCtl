@@ -1,19 +1,15 @@
 package com.flyzebra.screenrecord;
 
+import android.Manifest;
 import android.app.Activity;
-import android.content.Intent;
-import android.net.LocalServerSocket;
-import android.net.LocalSocket;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 
-import com.flyzebra.utils.ByteUtil;
-import com.flyzebra.utils.FlyLog;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Author FlyZebra
@@ -21,105 +17,52 @@ import java.net.Socket;
  * Describ:
  **/
 public class MainActivity extends Activity {
-    public static LocalSocket clientSocket, sendSocket;
-    private LocalServerSocket serverSocket;
-    public static Socket cSocket;
+    private String[] mPermissions = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    private final int REQUEST_CODE = 102;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        try {
-//            serverSocket = new LocalServerSocket("flyzebra_screenrecord");
-//            clientSocket = new LocalSocket();
-//            clientSocket.connect(new LocalSocketAddress("flyzebra_screenrecord"));
-//            clientSocket.setReceiveBufferSize(8 * 1024 * 1024);
-//            clientSocket.setSoTimeout(3000);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        verifyPermissions();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-//                    sendSocket = serverSocket.accept();
-//                    sendSocket.setSendBufferSize(8 * 1024 * 1024);
-//                    try {
-//                        OutputStream ins = sendSocket.getOutputStream();
-//                        while (true) {
-//                            FlyLog.d("send date 1 2 3 4");
-//                            ins.write(new byte[]{1, 2, 3, 4});
-//                            try {
-//                                Thread.sleep(1000);
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-                    ServerSocket serverSocket = new ServerSocket(8001);
-                    try {
-                        cSocket = new Socket("127.0.0.1",8001);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Socket socket = serverSocket.accept();
-                    InputStream inputStream = socket.getInputStream();
-                    byte[] bytes = new byte[1024];
-                    int len;
-                    while ((len = inputStream.read(bytes)) != -1) {
-                        byte data[] = new byte[len];
-                        System.arraycopy(bytes, 0, data, 0, len);
-                        FlyLog.d("recv data:" + ByteUtil.bytes2HexString(data));
-                    }
-//                    System.out.println("get message from client: " + sb);
-                    inputStream.close();
-//                    try {
-//                        byte buffer[] = new byte[8 * 1024 * 1024];
-//                        InputStream ins = sendSocket.getInputStream();
-//                        int len = -1;
-//                        while ((len = ins.read(buffer)) != -1) {
-//                            byte data[] = new byte[len];
-//                            System.arraycopy(buffer, 0, data, 0, len);
-//                            FlyLog.d("recv data:" + ByteUtil.bytes2HexString(data));
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+    }
+
+    public void verifyPermissions() {
+        List<String> applyPerms = new ArrayList<>();
+        for(String permission: mPermissions){
+            if(ActivityCompat.checkSelfPermission(this, permission)!=PackageManager.PERMISSION_GRANTED){
+                applyPerms.add(permission);
+            }
+        }
+        if(!applyPerms.isEmpty()){
+            ActivityCompat.requestPermissions(this, (String[]) applyPerms.toArray(), REQUEST_CODE);
+        }else{
+            //TODO::RUN
+            moveTaskToBack(true);
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE) {
+            boolean authorized = true;
+            for (int num : grantResults) {
+                if (num != PackageManager.PERMISSION_GRANTED) {
+                    authorized = false;
+                    break;
                 }
             }
-        }).start();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
+            if(authorized){
+                //TODO::RUN
+                moveTaskToBack(true);
             }
-        });
-
-        startActivity(new Intent(MainActivity.this, ScreenRecordActivity.class));
-
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    byte buffer[] = new byte[8 * 1024 * 1024];
-//                    InputStream ins = clientSocket.getInputStream();
-//                    int len = -1;
-//                    while ((len = ins.read(buffer)) != -1) {
-//                        byte data[] = new byte[len];
-//                        System.arraycopy(buffer, 0, data, 0, len);
-//                        FlyLog.d("recv data:" + ByteUtil.bytes2HexString(data));
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//
-//            }
-//        }).start();
+        }
     }
 }

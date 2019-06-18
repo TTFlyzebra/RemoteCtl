@@ -32,9 +32,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.flyzebra.utils.CommonUtil;
-import com.flyzebra.utils.FileUtil;
-import com.flyzebra.utils.ScreenUtil;
+import com.flyzebra.screenrecord.utils.CommonUtil;
+import com.flyzebra.screenrecord.utils.FileUtil;
+import com.flyzebra.screenrecord.utils.ScreenUtil;
 
 import java.io.File;
 import java.io.IOException;

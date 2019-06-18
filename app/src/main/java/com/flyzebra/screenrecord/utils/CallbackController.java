@@ -12,7 +12,7 @@
  * permissions and limitations under the License.
  */
 
-package com.flyzebra.utils;
+package com.flyzebra.screenrecord.utils;
 
 public interface CallbackController<T> {
     void addCallback(T listener);

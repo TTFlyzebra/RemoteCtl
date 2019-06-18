@@ -1,4 +1,4 @@
-package com.flyzebra.utils;
+package com.flyzebra.screenrecord.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -6,12 +6,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
-
-import java.util.ArrayList;
-import java.util.List;
 import android.util.Log;
 
 import com.flyzebra.screenrecord.ScreenRecordService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScreenUtil {
 

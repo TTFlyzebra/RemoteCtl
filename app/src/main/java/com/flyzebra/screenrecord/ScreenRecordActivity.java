@@ -10,15 +10,13 @@ import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-
-import android.view.KeyEvent;
-
-import com.flyzebra.utils.CommonUtil;
-import com.flyzebra.utils.ScreenUtil;
+import com.flyzebra.screenrecord.utils.CommonUtil;
+import com.flyzebra.screenrecord.utils.ScreenUtil;
 
 
 public class ScreenRecordActivity extends Activity {

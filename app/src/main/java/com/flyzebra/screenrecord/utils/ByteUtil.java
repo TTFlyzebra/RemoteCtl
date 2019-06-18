@@ -1,4 +1,4 @@
-package com.flyzebra.utils;
+package com.flyzebra.screenrecord.utils;
 
 /**
  * Author FlyZebra

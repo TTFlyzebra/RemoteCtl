@@ -1,8 +1,8 @@
-package com.flyzebra.utils;
+package com.flyzebra.screenrecord.utils;
 
-import android.util.DisplayMetrics;
-import android.content.Context;
 import android.app.Application;
+import android.content.Context;
+import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 public class CommonUtil {
