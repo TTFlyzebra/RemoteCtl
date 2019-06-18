@@ -3,7 +3,6 @@ package com.flyzebra.screenrecord.utils;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.flyzebra.screenrecord.ui.ScreenRecordActivity;
 
@@ -36,8 +35,7 @@ public final class RecordScreenControllerImpl implements RecordScreenController 
 
     @SuppressLint("LongLogTag")
     public void dispatchModeChanged(){
-        Log.d(TAG,"dispatchModeChanged ScreenRecordActivity.instance = "+ScreenRecordActivity.instance+" ScreenUtil.isRecordScreen() = "+ScreenUtil.isRecordScreen());
-        if(ScreenRecordActivity.instance == null){
+        if(true){
             Intent intent = new Intent(mContext,ScreenRecordActivity.class);
             mContext.startActivity(intent);
         }else if(!ScreenUtil.isRecordScreen()){
