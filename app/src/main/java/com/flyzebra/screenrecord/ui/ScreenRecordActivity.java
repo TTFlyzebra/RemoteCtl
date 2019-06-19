@@ -11,9 +11,11 @@ import android.support.annotation.Nullable;
 import android.widget.TextView;
 
 import com.flyzebra.screenrecord.R;
+import com.flyzebra.screenrecord.module.ScreenRecorder;
 
 
 public class ScreenRecordActivity extends Activity {
+    private ScreenRecorder mScreenRecorder;
     private TextView mTvTime;
     private MediaProjectionManager mMediaProjectionManager;
     private MediaProjection mediaProjection;
@@ -30,6 +32,7 @@ public class ScreenRecordActivity extends Activity {
                 if (mediaProjection != null) {
                     moveTaskToBack(true);
                     //TODO::start record;
+                    mScreenRecorder = new ScreenRecorder(mediaProjection);
                 }
                 count = 3;
             }else{

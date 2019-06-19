@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
+import com.flyzebra.screenrecord.module.ScreenRecorder;
 import com.flyzebra.screenrecord.ui.ScreenRecordActivity;
 
 import java.util.ArrayList;
@@ -76,5 +77,9 @@ public class MainActivity extends Activity {
             moveTaskToBack(true);
             startActivity(new Intent(this,ScreenRecordActivity.class));
         }
+    }
+
+    public void stopRecord(View view) {
+        ScreenRecorder.stopRun();
     }
 }
