@@ -67,7 +67,7 @@ public class ScreenRecorder extends Thread{
 
         try {
             mediaMuxer = new MediaMuxer("/sdcard/"+System.currentTimeMillis()+".mp4",MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
+//            videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,7 +89,7 @@ public class ScreenRecorder extends Thread{
             mediaCodec.start();
         }
         if(mediaMuxer!=null){
-            mediaMuxer.start();
+
         }
         while (!mQuit.get()) {
             int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
@@ -103,6 +103,8 @@ public class ScreenRecorder extends Thread{
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                     FlyLog.d("VideoSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" + mediaCodec.getOutputFormat().toString());
 //                    sendAVCDecoderConfigurationRecord(0, mediaCodec.getOutputFormat());
+                    videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
+                    mediaMuxer.start();
                     FlyLog.d("send format");
                     break;
                 default:
@@ -114,12 +116,13 @@ public class ScreenRecorder extends Thread{
                      * we send sps pps already in INFO_OUTPUT_FORMAT_CHANGED
                      * so we ignore MediaCodec.BUFFER_FLAG_CODEC_CONFIG
                      */
-                    if (mBufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && mBufferInfo.size != 0) {
-                        ByteBuffer realData = mediaCodec.getOutputBuffer(eobIndex);
-//                        realData.position(mBufferInfo.offset + 4);
-//                        realData.limit(mBufferInfo.offset + mBufferInfo.size);
+                    if ( mBufferInfo.size != 0) {
+                        ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
+                        ByteBuffer outputBuffer = outputBuffers[eobIndex];
+                        outputBuffer.position(mBufferInfo.offset);
+                        outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 //                        sendRealData((mBufferInfo.presentationTimeUs / 1000) - startTime, realData);
-                        mediaMuxer.writeSampleData(videoTrackIndex, realData, mBufferInfo);
+                        mediaMuxer.writeSampleData(videoTrackIndex, outputBuffer, mBufferInfo);
                         FlyLog.d("send buffer");
                     }
                     mediaCodec.releaseOutputBuffer(eobIndex, false);
