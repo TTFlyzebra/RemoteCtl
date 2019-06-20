@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.flyzebra.screenrecord.R;
 import com.flyzebra.screenrecord.module.ScreenRecorder;
+import com.flyzebra.screenrecord.service.RecordService;
 
 
 public class ScreenRecordActivity extends Activity {
@@ -30,9 +31,12 @@ public class ScreenRecordActivity extends Activity {
             count--;
             if (count < 0) {
                 if (mediaProjection != null) {
-                    moveTaskToBack(true);
                     //TODO::start record;
-                    mScreenRecorder = new ScreenRecorder(mediaProjection);
+//
+//                    mScreenRecorder = new ScreenRecorder(mediaProjection);
+//                    finish();
+                    moveTaskToBack(true);
+                    startService(new Intent(ScreenRecordActivity.this,RecordService.class));
                 }
                 count = 3;
             }else{
@@ -44,8 +48,6 @@ public class ScreenRecordActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.screen_record_activity);
         mTvTime = findViewById(R.id.count_text);
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
@@ -55,8 +57,6 @@ public class ScreenRecordActivity extends Activity {
             startActivityForResult(captureIntent, REQUEST_CODE);
         }
 
-        count = 3;
-        mHandler.post(countTask);
     }
 
 
@@ -66,6 +66,8 @@ public class ScreenRecordActivity extends Activity {
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (mMediaProjectionManager != null) {
                 mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
+                count = 3;
+                mHandler.post(countTask);
             }
         }
     }

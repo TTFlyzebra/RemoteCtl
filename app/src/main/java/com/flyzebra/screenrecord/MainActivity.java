@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
 import com.flyzebra.screenrecord.module.ScreenRecorder;
+import com.flyzebra.screenrecord.service.RecordService;
 import com.flyzebra.screenrecord.ui.ScreenRecordActivity;
 
 import java.util.ArrayList;
@@ -29,11 +31,13 @@ public class MainActivity extends Activity {
     };
     private boolean isPermission = false;
     private final int REQUEST_CODE = 102;
+    private MediaProjectionManager mMediaProjectionManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         verifyPermissions();
 
     }
@@ -74,12 +78,31 @@ public class MainActivity extends Activity {
 
     public void startRecord(View view) {
         if (isPermission) {
-            moveTaskToBack(true);
-            startActivity(new Intent(this,ScreenRecordActivity.class));
+            if (mMediaProjectionManager != null && !ScreenRecorder.getInstance().isRunning()) {
+                Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
+                startActivityForResult(captureIntent, REQUEST_CODE);
+            }
         }
     }
 
     public void stopRecord(View view) {
-        ScreenRecorder.stopRun();
+        sendBroadcast(new Intent(RecordService.MAIN_ACTION_BROADCAST_EXIT));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            if (mMediaProjectionManager != null) {
+                moveTaskToBack(true);
+                startService(new Intent(this,RecordService.class));
+                ScreenRecorder.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
+            }
+        }
     }
 }
