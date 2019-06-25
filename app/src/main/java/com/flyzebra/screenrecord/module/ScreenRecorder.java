@@ -55,7 +55,7 @@ public class ScreenRecorder {
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
     private long jniRtmpPointer;
-    private static final String RTMP_ADDR = "rtmp://192.168.1.88/live/test";
+    private static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test1";
 
     public static ScreenRecorder getInstance() {
         return ScreenRecorderHolder.sInstance;
@@ -75,7 +75,6 @@ public class ScreenRecorder {
         initMediaCodec();
         createVirtualDisplay();
         tHandler.post(runTask);
-        jniRtmpPointer = RtmpClient.open(RTMP_ADDR, true);
     }
 
     private void initMediaCodec() {
@@ -133,6 +132,12 @@ public class ScreenRecorder {
                 }
             }
             isRunning.set(true);
+            jniRtmpPointer = RtmpClient.open(RTMP_ADDR, true);
+            byte[] MetaData = new FLvMetaData().getMetaData();
+            RtmpClient.write(jniRtmpPointer,
+                    MetaData,
+                    MetaData.length,
+                    18, 0);
             while (!isStop.get()) {
                 int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
                 switch (eobIndex) {
@@ -161,7 +166,7 @@ public class ScreenRecorder {
                          * we send sps pps already in INFO_OUTPUT_FORMAT_CHANGED
                          * so we ignore MediaCodec.BUFFER_FLAG_CODEC_CONFIG
                          */
-                        if (mBufferInfo.size != 0) {
+                        if (mBufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && mBufferInfo.size != 0) {
                             ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
                             ByteBuffer outputBuffer = outputBuffers[eobIndex];
                             outputBuffer.position(mBufferInfo.offset);
