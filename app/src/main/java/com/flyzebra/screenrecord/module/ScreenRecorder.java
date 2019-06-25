@@ -7,11 +7,11 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
-import android.net.TrafficStats;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
+import com.flyzebra.screenrecord.utils.ByteUtil;
 import com.flyzebra.screenrecord.utils.FlyLog;
 
 import java.io.IOException;
@@ -96,11 +96,17 @@ public class ScreenRecorder {
                             ByteBuffer outputBuffer = outputBuffers[eobIndex];
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
+
+                            outputBuffer.mark();
+                            byte index[] = new byte[8];
+                            outputBuffer.get(index, 0, index.length);
+                            outputBuffer.reset();
+
+                            FlyLog.d("H264 I:%s", ByteUtil.bytes2String(index));
 //                        sendRealData((mBufferInfo.presentationTimeUs / 1000) - startTime, realData);
                             if (!isStop.get()) {
                                 long time = System.currentTimeMillis();
-                                mediaMuxer.writeSampleData(videoTrackIndex, outputBuffer, mBufferInfo);
-                                if (time - recordStartTime > 60000) {
+                                if (time - recordStartTime > 60000 && index[4] == 0x65) {
                                     FlyLog.d("create new file");
                                     recordStartTime = time;
                                     mediaMuxer.stop();
@@ -110,6 +116,7 @@ public class ScreenRecorder {
                                     videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
                                     mediaMuxer.start();
                                 }
+                                mediaMuxer.writeSampleData(videoTrackIndex, outputBuffer, mBufferInfo);
                             }
                             FlyLog.d("send buffer");
                         }

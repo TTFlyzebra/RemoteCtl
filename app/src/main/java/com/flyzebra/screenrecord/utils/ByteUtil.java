@@ -21,6 +21,23 @@ public class ByteUtil {
         return sb.toString();
     }
 
+    public static String bytes2String(byte[] bytes) {
+        if (bytes == null || bytes.length == 1) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder("");
+        for (byte aByte : bytes) {
+            String hv = Integer.toHexString(aByte & 0xFF);
+            if (hv.length() < 2) {
+                sb.append(0);
+            }
+            sb.append(hv);
+            sb.append(":");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        return sb.toString();
+    }
+
     public static byte[] hexString2Bytes(String hex) {
         int len = (hex.length() / 2);
         byte[] result = new byte[len];
