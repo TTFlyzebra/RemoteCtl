@@ -7,6 +7,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
+import android.net.TrafficStats;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
@@ -54,6 +55,13 @@ public class ScreenRecorder {
     private Runnable handleTask = new Runnable() {
         @Override
         public void run() {
+            while (isRunning.get()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             isRunning.set(true);
             while (!isStop.get()) {
                 int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
@@ -67,7 +75,8 @@ public class ScreenRecorder {
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                         FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" + mediaCodec.getOutputFormat().toString());
 //                    sendAVCDecoderConfigurationRecord(0, mediaCodec.getOutputFormat());
-                        if(!isStop.get()){
+                        if (!isStop.get()) {
+                            initMediaMuxer();
                             videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
                             mediaMuxer.start();
                         }
@@ -89,7 +98,18 @@ public class ScreenRecorder {
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 //                        sendRealData((mBufferInfo.presentationTimeUs / 1000) - startTime, realData);
                             if (!isStop.get()) {
+                                long time = System.currentTimeMillis();
                                 mediaMuxer.writeSampleData(videoTrackIndex, outputBuffer, mBufferInfo);
+                                if (time - recordStartTime > 60000) {
+                                    FlyLog.d("create new file");
+                                    recordStartTime = time;
+                                    mediaMuxer.stop();
+                                    mediaMuxer.release();
+                                    mediaMuxer = null;
+                                    initMediaMuxer();
+                                    videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
+                                    mediaMuxer.start();
+                                }
                             }
                             FlyLog.d("send buffer");
                         }
@@ -97,6 +117,15 @@ public class ScreenRecorder {
                         break;
                 }
             }
+            mediaMuxer.stop();
+            mediaMuxer.release();
+            mediaMuxer = null;
+            mediaCodec.stop();
+            mediaCodec.release();
+            mediaCodec = null;
+            mVirtualDisplay.release();
+            mVirtualDisplay = null;
+            mMediaProjection.stop();
             isRunning.set(false);
         }
     };
@@ -105,19 +134,18 @@ public class ScreenRecorder {
         return ScreenRecorderHolder.sInstance;
     }
 
-    public boolean isRunning() {
-        return isRunning.get();
-    }
-
     private static class ScreenRecorderHolder {
         public static final ScreenRecorder sInstance = new ScreenRecorder();
+    }
+
+    public boolean isRunning() {
+        return isRunning.get();
     }
 
     public void start(MediaProjection mediaProjection) {
         isStop.set(false);
         mMediaProjection = mediaProjection;
         initMediaCodec();
-        initMediaMuxer();
         createVirtualDisplay();
         tHandler.post(handleTask);
     }
@@ -141,9 +169,12 @@ public class ScreenRecorder {
 
     }
 
+    private long recordStartTime = 0;
+
     private void initMediaMuxer() {
         try {
             if (mediaMuxer == null) {
+                recordStartTime = System.currentTimeMillis();
                 mediaMuxer = new MediaMuxer("/sdcard/" + System.currentTimeMillis() + ".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             }
         } catch (IOException e) {
@@ -161,14 +192,5 @@ public class ScreenRecorder {
     public void stop() {
         tHandler.removeCallbacksAndMessages(null);
         isStop.set(true);
-        mediaMuxer.stop();
-        mediaMuxer.release();
-        mediaMuxer = null;
-        mediaCodec.stop();
-        mediaCodec.release();
-        mediaCodec = null;
-        mVirtualDisplay.release();
-        mVirtualDisplay = null;
-        mMediaProjection.stop();
     }
 }
