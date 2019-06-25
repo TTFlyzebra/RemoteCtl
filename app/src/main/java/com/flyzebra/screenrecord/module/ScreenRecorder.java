@@ -11,6 +11,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
+import com.flyzebra.rtmp.RtmpClient;
+import com.flyzebra.screenrecord.utils.ByteArrayTools;
 import com.flyzebra.screenrecord.utils.ByteUtil;
 import com.flyzebra.screenrecord.utils.FlyLog;
 
@@ -52,7 +54,75 @@ public class ScreenRecorder {
     }
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
-    private Runnable handleTask = new Runnable() {
+    private long jniRtmpPointer;
+    private static final String RTMP_ADDR = "rtmp://192.168.1.88/live/test";
+
+    public static ScreenRecorder getInstance() {
+        return ScreenRecorderHolder.sInstance;
+    }
+
+    private static class ScreenRecorderHolder {
+        public static final ScreenRecorder sInstance = new ScreenRecorder();
+    }
+
+    public boolean isRunning() {
+        return isRunning.get();
+    }
+
+    public void start(MediaProjection mediaProjection) {
+        isStop.set(false);
+        mMediaProjection = mediaProjection;
+        initMediaCodec();
+        createVirtualDisplay();
+        tHandler.post(runTask);
+        jniRtmpPointer = RtmpClient.open(RTMP_ADDR, true);
+    }
+
+    private void initMediaCodec() {
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
+        format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE);
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
+        FlyLog.d("created video format: " + format);
+        try {
+            mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
+            mediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            mSurface = mediaCodec.createInputSurface();
+            FlyLog.d("created input surface: " + mSurface);
+            mediaCodec.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private long recordStartTime = 0;
+
+    private void initMediaMuxer() {
+        try {
+            if (mediaMuxer == null) {
+                recordStartTime = System.currentTimeMillis();
+                mediaMuxer = new MediaMuxer("/sdcard/" + System.currentTimeMillis() + ".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createVirtualDisplay() {
+        if (mVirtualDisplay == null) {
+            mVirtualDisplay = mMediaProjection.createVirtualDisplay("SCREEN", mWidth, mHeight, 1,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mSurface, null, null);
+        }
+    }
+
+    public void stop() {
+        tHandler.removeCallbacksAndMessages(null);
+        isStop.set(true);
+    }
+
+    private Runnable runTask = new Runnable() {
         @Override
         public void run() {
             while (isRunning.get()) {
@@ -103,8 +173,31 @@ public class ScreenRecorder {
                             outputBuffer.reset();
 
                             FlyLog.d("H264 I:%s", ByteUtil.bytes2String(index));
-//                        sendRealData((mBufferInfo.presentationTimeUs / 1000) - startTime, realData);
+
+//
                             if (!isStop.get()) {
+                                //发送文件
+                                outputBuffer.mark();
+                                int lengh = 5 + 4 + outputBuffer.remaining() - 4;
+                                byte send[] = new byte[lengh];
+                                outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
+                                FLVPackager.fillFlvVideoTag(send,
+                                        0,
+                                        false,
+                                        index[4] == 0x65,
+                                        outputBuffer.remaining() - 4);
+                                final int res = RtmpClient.write(jniRtmpPointer,
+                                        send,
+                                        send.length,
+                                        9,
+                                        (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+                                outputBuffer.reset();
+                                if (res == 0) {
+                                    FlyLog.d("video frame sent = " + send.length);
+                                } else {
+                                    FlyLog.e("writeError = " + res);
+                                }
+                                //保存文件
                                 long time = System.currentTimeMillis();
                                 if (time - recordStartTime > 60000 && index[4] == 0x65) {
                                     FlyLog.d("create new file");
@@ -133,71 +226,42 @@ public class ScreenRecorder {
             mVirtualDisplay.release();
             mVirtualDisplay = null;
             mMediaProjection.stop();
+            RtmpClient.close(jniRtmpPointer);
             isRunning.set(false);
         }
     };
 
-    public static ScreenRecorder getInstance() {
-        return ScreenRecorderHolder.sInstance;
-    }
+    public static class FLVPackager {
+        public static final int FLV_TAG_LENGTH = 11;
+        public static final int FLV_VIDEO_TAG_LENGTH = 5;
+        public static final int FLV_AUDIO_TAG_LENGTH = 2;
+        public static final int FLV_TAG_FOOTER_LENGTH = 4;
+        public static final int NALU_HEADER_LENGTH = 4;
 
-    private static class ScreenRecorderHolder {
-        public static final ScreenRecorder sInstance = new ScreenRecorder();
-    }
-
-    public boolean isRunning() {
-        return isRunning.get();
-    }
-
-    public void start(MediaProjection mediaProjection) {
-        isStop.set(false);
-        mMediaProjection = mediaProjection;
-        initMediaCodec();
-        createVirtualDisplay();
-        tHandler.post(handleTask);
-    }
-
-    private void initMediaCodec() {
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
-        format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE);
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
-        FlyLog.d("created video format: " + format);
-        try {
-            mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
-            mediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-            mSurface = mediaCodec.createInputSurface();
-            FlyLog.d("created input surface: " + mSurface);
-            mediaCodec.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private long recordStartTime = 0;
-
-    private void initMediaMuxer() {
-        try {
-            if (mediaMuxer == null) {
-                recordStartTime = System.currentTimeMillis();
-                mediaMuxer = new MediaMuxer("/sdcard/" + System.currentTimeMillis() + ".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+        public static void fillFlvVideoTag(byte[] dst, int pos, boolean isAVCSequenceHeader, boolean isIDR, int readDataLength) {
+            //FrameType&CodecID
+            dst[pos] = isIDR ? (byte) 0x17 : (byte) 0x27;
+            //AVCPacketType
+            dst[pos + 1] = isAVCSequenceHeader ? (byte) 0x00 : (byte) 0x01;
+            //LAKETODO CompositionTime
+            dst[pos + 2] = 0x00;
+            dst[pos + 3] = 0x00;
+            dst[pos + 4] = 0x00;
+            if (!isAVCSequenceHeader) {
+                //NALU HEADER
+                ByteArrayTools.intToByteArrayFull(dst, pos + 5, readDataLength);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-    }
 
-    private void createVirtualDisplay() {
-        if (mVirtualDisplay == null) {
-            mVirtualDisplay = mMediaProjection.createVirtualDisplay("SCREEN", mWidth, mHeight, 1,
-                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mSurface, null, null);
+        public static void fillFlvAudioTag(byte[] dst, int pos, boolean isAACSequenceHeader) {
+            /**
+             * UB[4] 10=AAC
+             * UB[2] 3=44kHz
+             * UB[1] 1=16-bit
+             * UB[1] 0=MonoSound
+             */
+            dst[pos] = (byte) 0xAE;
+            dst[pos + 1] = isAACSequenceHeader ? (byte) 0x00 : (byte) 0x01;
         }
-    }
-
-    public void stop() {
-        tHandler.removeCallbacksAndMessages(null);
-        isStop.set(true);
     }
 }
