@@ -49,11 +49,22 @@ public class RtmpSend {
         }
     }
 
-    public void sendsps(MediaFormat outputFormat) {
+    public void sendsps(MediaFormat format) {
+        byte[] AVCDecoderConfigurationRecord = H264Packager.generateAVCDecoderConfigurationRecord(format);
+        int packetLen = FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                AVCDecoderConfigurationRecord.length;
+        final byte[] send = new byte[packetLen];
+        FLVPackager.fillFlvVideoTag(send,
+                0,
+                true,
+                true,
+                AVCDecoderConfigurationRecord.length);
+        System.arraycopy(AVCDecoderConfigurationRecord, 0,
+                send, FLVPackager.FLV_VIDEO_TAG_LENGTH, AVCDecoderConfigurationRecord.length);
         tHandler.post(new Runnable() {
             @Override
             public void run() {
-
+                final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, 0);
             }
         });
     }
