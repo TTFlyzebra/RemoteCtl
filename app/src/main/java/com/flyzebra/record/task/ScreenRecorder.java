@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.task;
+package com.flyzebra.record.task;
 
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
@@ -11,10 +11,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
+import com.flyzebra.record.utils.ByteArrayTools;
+import com.flyzebra.record.utils.FlyLog;
+import com.flyzebra.record.utils.TimeUtil;
 import com.flyzebra.rtmp.RtmpClient;
-import com.flyzebra.screenrecord.utils.ByteArrayTools;
-import com.flyzebra.screenrecord.utils.FlyLog;
-import com.flyzebra.screenrecord.utils.TimeUtil;
 
 import java.io.File;
 import java.io.IOException;

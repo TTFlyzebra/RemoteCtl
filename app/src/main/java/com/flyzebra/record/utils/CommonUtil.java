@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.utils;
+package com.flyzebra.record.utils;
 
 import android.app.Application;
 import android.content.Context;

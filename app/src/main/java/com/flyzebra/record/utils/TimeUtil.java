@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.utils;
+package com.flyzebra.record.utils;
 
 
 import java.text.SimpleDateFormat;

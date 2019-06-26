@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.utils;
+package com.flyzebra.record.utils;
 
 /**
  * Created by lake on 16-3-30.

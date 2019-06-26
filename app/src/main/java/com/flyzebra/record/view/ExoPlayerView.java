@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.view;
+package com.flyzebra.record.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,7 +7,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
-import com.flyzebra.screenrecord.utils.FlyLog;
+import com.flyzebra.record.utils.FlyLog;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;

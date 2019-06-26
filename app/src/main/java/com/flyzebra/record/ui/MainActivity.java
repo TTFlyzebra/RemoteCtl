@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.ui;
+package com.flyzebra.record.ui;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,9 +11,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
-import com.flyzebra.screenrecord.R;
-import com.flyzebra.screenrecord.task.ScreenRecorder;
-import com.flyzebra.screenrecord.service.RecordService;
+import com.flyzebra.record.R;
+import com.flyzebra.record.service.RecordService;
+import com.flyzebra.record.task.ScreenRecorder;
 
 import java.util.ArrayList;
 import java.util.List;

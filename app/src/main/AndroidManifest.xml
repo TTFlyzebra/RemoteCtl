@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.flyzebra.screenrecord">
+    package="com.flyzebra.record">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".ui.MainActivity"
+            android:name="com.flyzebra.record.ui.MainActivity"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,23 +28,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.PlayActivity"
+            android:name="com.flyzebra.record.ui.PlayActivity"
             android:theme="@style/AppThemeFull"
             android:launchMode="singleInstance">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.ScreenRecordActivity"
-            android:launchMode="singleInstance"
-            android:theme="@style/AppThemeFull">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <service android:name=".service.RecordService" />
+        <service android:name="com.flyzebra.record.service.RecordService" />
     </application>
 
 </manifest>
