@@ -50,7 +50,7 @@ public class ScreenRecorder {
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
     private long jniRtmpPointer;
-    private static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test1";
+    private static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test";
 
     private long lastRecordTime = 0;
     private long one_record_time = 60000;

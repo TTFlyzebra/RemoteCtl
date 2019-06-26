@@ -9,6 +9,7 @@ import com.flyzebra.record.utils.ByteArrayTools;
 import com.flyzebra.rtmp.RtmpClient;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Author FlyZebra
@@ -18,12 +19,14 @@ import java.nio.ByteBuffer;
 public class RtmpSend {
 
     private static final HandlerThread sWorkerThread = new HandlerThread("screen-rtmp");
+
     static {
         sWorkerThread.start();
     }
+
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
-    private long jniRtmpPointer = -1;
+    private AtomicLong jniRtmpPointer = new AtomicLong(-1);
 
     public static RtmpSend getInstance() {
         return RtmpSend.RtmpSendHolder.sInstance;
@@ -34,20 +37,45 @@ public class RtmpSend {
         public static final RtmpSend sInstance = new RtmpSend();
     }
 
-    public void open(String url) {
-        jniRtmpPointer = RtmpClient.open(url, true);
+    public void open(final String url) {
+        if (jniRtmpPointer.get() == -1) {
+            tHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    jniRtmpPointer.set(RtmpClient.open(url, true));
+                }
+            });
+        }
     }
 
-
     public void sendsps(MediaFormat outputFormat) {
+        tHandler.post(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
     }
 
     public void send(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo) {
+        tHandler.post(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
     }
 
 
     public void close() {
-        RtmpClient.close(jniRtmpPointer);
+        final long rtmp = jniRtmpPointer.get();
+        jniRtmpPointer.set(-1);
+        tHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                RtmpClient.close(rtmp);
+            }
+        });
     }
 
     public static class FLVPackager {
