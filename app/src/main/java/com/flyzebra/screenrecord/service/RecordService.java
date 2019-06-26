@@ -16,7 +16,6 @@ import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.RemoteViews;
 
 import com.flyzebra.screenrecord.MainActivity;
-import com.flyzebra.screenrecord.module.ScreenRecorder;
 import com.flyzebra.screenrecord.utils.FlyLog;
 
 
@@ -68,7 +67,6 @@ public class RecordService extends Service  {
 
     @Override
     public void onDestroy() {
-        ScreenRecorder.getInstance().stop();
         stopForeground(true);
         unregisterReceiver(broadcastreceiver);
         super.onDestroy();

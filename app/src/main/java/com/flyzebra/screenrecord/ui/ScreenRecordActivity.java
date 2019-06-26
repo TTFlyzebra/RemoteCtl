@@ -11,7 +11,7 @@ import android.support.annotation.Nullable;
 import android.widget.TextView;
 
 import com.flyzebra.screenrecord.R;
-import com.flyzebra.screenrecord.module.ScreenRecorder;
+import com.flyzebra.screenrecord.task.ScreenRecorder;
 import com.flyzebra.screenrecord.service.RecordService;
 
 

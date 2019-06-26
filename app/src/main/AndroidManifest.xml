@@ -33,7 +33,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <service android:name=".service.ScreenRecordService"/>
         <service android:name=".service.RecordService"/>
     </application>
 

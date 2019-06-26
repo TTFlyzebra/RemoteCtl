@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.module;
+package com.flyzebra.screenrecord.task;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;

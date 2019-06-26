@@ -1,4 +1,4 @@
-package com.flyzebra.screenrecord.module;
+package com.flyzebra.screenrecord.task;
 
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
@@ -15,6 +15,7 @@ import com.flyzebra.rtmp.RtmpClient;
 import com.flyzebra.screenrecord.utils.ByteArrayTools;
 import com.flyzebra.screenrecord.utils.ByteUtil;
 import com.flyzebra.screenrecord.utils.FlyLog;
+import com.flyzebra.screenrecord.utils.TimeUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -102,7 +103,7 @@ public class ScreenRecorder {
         try {
             if (mediaMuxer == null) {
                 recordStartTime = System.currentTimeMillis();
-                mediaMuxer = new MediaMuxer("/sdcard/" + System.currentTimeMillis() + ".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                mediaMuxer = new MediaMuxer("/sdcard/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -176,6 +177,7 @@ public class ScreenRecorder {
                             byte index[] = new byte[8];
                             outputBuffer.get(index, 0, index.length);
                             outputBuffer.reset();
+                            int frameType = index[4] & 0x1F;
 
                             FlyLog.d("H264 I:%s", ByteUtil.bytes2String(index));
 
@@ -189,7 +191,7 @@ public class ScreenRecorder {
                                 FLVPackager.fillFlvVideoTag(send,
                                         0,
                                         false,
-                                        index[4] == 0x65,
+                                        frameType == 5,
                                         outputBuffer.remaining() - 4);
                                 final int res = RtmpClient.write(jniRtmpPointer,
                                         send,
@@ -204,7 +206,7 @@ public class ScreenRecorder {
                                 }
                                 //保存文件
                                 long time = System.currentTimeMillis();
-                                if (time - recordStartTime > 60000 && index[4] == 0x65) {
+                                if (time - recordStartTime > 60000 && frameType == 5) {
                                     FlyLog.d("create new file");
                                     recordStartTime = time;
                                     mediaMuxer.stop();

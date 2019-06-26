@@ -11,9 +11,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
-import com.flyzebra.screenrecord.module.ScreenRecorder;
+import com.flyzebra.screenrecord.task.ScreenRecorder;
 import com.flyzebra.screenrecord.service.RecordService;
-import com.flyzebra.screenrecord.ui.ScreenRecordActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,17 +75,13 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void startRecord(View view) {
+    public void captureAndStartRecord(View view) {
         if (isPermission) {
             if (mMediaProjectionManager != null && !ScreenRecorder.getInstance().isRunning()) {
                 Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
                 startActivityForResult(captureIntent, REQUEST_CODE);
             }
         }
-    }
-
-    public void stopRecord(View view) {
-        sendBroadcast(new Intent(RecordService.MAIN_ACTION_BROADCAST_EXIT));
     }
 
     @Override
@@ -99,10 +94,20 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (mMediaProjectionManager != null) {
-                moveTaskToBack(true);
-                startService(new Intent(this,RecordService.class));
-                ScreenRecorder.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
+                startRecord(mMediaProjectionManager, resultCode, data);
             }
         }
     }
+
+    private void startRecord(MediaProjectionManager mMediaProjectionManager, int resultCode, Intent data) {
+        moveTaskToBack(true);
+        startService(new Intent(this, RecordService.class));
+        ScreenRecorder.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
+    }
+
+    public void stopRecord(View view) {
+        ScreenRecorder.getInstance().stop();
+        sendBroadcast(new Intent(RecordService.MAIN_ACTION_BROADCAST_EXIT));
+    }
+
 }
