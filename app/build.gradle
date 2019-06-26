@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.flyzebra.screenrecord"
+        applicationId "com.flyzebra.record"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1

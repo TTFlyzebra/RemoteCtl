@@ -3,9 +3,11 @@ package com.flyzebra.record.task;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.os.Handler;
-import android.os.HandlerThread;
 
+import com.flyzebra.record.utils.FlyLog;
+import com.flyzebra.record.utils.TimeUtil;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -17,16 +19,14 @@ import java.nio.ByteBuffer;
 public class SaveRecordFile {
     private MediaMuxer mediaMuxer;
     private boolean isSetFormat = false;
-    private MediaFormat mFormat;
     private int indexTrack;
+    private long lastRecordTime = 0;
+    private long ONE_RECORD_TIME = 60000;
+    private int OUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
+    private String SAVA_PATH = "/sdcard/flyrecord";
+    private String FILE_FORMAT = "yyyyMMdd_HHmmss";
+    private MediaFormat mMediaFormat;
 
-    private static final HandlerThread sWorkerThread = new HandlerThread("screen-save");
-
-    static {
-        sWorkerThread.start();
-    }
-
-    private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
     public static SaveRecordFile getInstance() {
         return SaveRecordFileHolder.sInstance;
@@ -38,64 +38,64 @@ public class SaveRecordFile {
 
     /**
      * 创建文件
-     * @param fileName
      */
-    public void createNewFile(final String fileName, final int format) {
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    isSetFormat = false;
-                    mediaMuxer = new MediaMuxer(fileName, format);
-                    if(mFormat!=null){
-                        setFileFormat(mFormat);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    public void open() {
+        try {
+            lastRecordTime = System.currentTimeMillis() / ONE_RECORD_TIME;
+            File file = new File(SAVA_PATH);
+            if (!file.exists()) {
+                file.mkdirs();
             }
-        });
+            String fileName = SAVA_PATH + File.separator + TimeUtil.getCurrentTime(FILE_FORMAT) + ".mp4";
+            mediaMuxer = new MediaMuxer(fileName, OUT_FORMAT);
+            isSetFormat = false;
+            FlyLog.d("create new file: %s", fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
 
-    public void setFileFormat(final MediaFormat format) {
-        mFormat = format;
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (!isSetFormat) {
-                    indexTrack = mediaMuxer.addTrack(format);
-                    mediaMuxer.start();
-                    isSetFormat = true;
-                }
-            }
-        });
+    public void open(MediaFormat outputFormat) {
+        open();
+        writeFormat(outputFormat);
+    }
+
+
+    public void writeFormat(final MediaFormat format) {
+        mMediaFormat = format;
+        if (!isSetFormat) {
+            indexTrack = mediaMuxer.addTrack(format);
+            mediaMuxer.start();
+            isSetFormat = true;
+        }
 
     }
 
-    public void save(final ByteBuffer outputBuffer, final MediaCodec.BufferInfo mBufferInfo) {
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mediaMuxer != null) {
-                    mediaMuxer.writeSampleData(indexTrack, outputBuffer, mBufferInfo);
-                }
+    public void write(final ByteBuffer outputBuffer, final MediaCodec.BufferInfo mBufferInfo) {
+        if (mediaMuxer != null) {
+            //获取帧类型
+            outputBuffer.mark();
+            Byte type = outputBuffer.get(4);
+            int frameType = type & 0x1F;
+            outputBuffer.reset();
+
+            long time = System.currentTimeMillis();
+            if (time / ONE_RECORD_TIME - lastRecordTime > 0 && frameType == 5) {
+                close();
+                open();
+                writeFormat(mMediaFormat);
             }
-        });
+            mediaMuxer.writeSampleData(indexTrack, outputBuffer, mBufferInfo);
+        }
 
     }
 
     public void close() {
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mFormat = null;
-                isSetFormat = false;
-                mediaMuxer.stop();
-                mediaMuxer.release();
-                mediaMuxer = null;
-            }
-        });
+        isSetFormat = false;
+        mediaMuxer.stop();
+        mediaMuxer.release();
+        mediaMuxer = null;
     }
 }

@@ -5,7 +5,6 @@ import android.hardware.display.VirtualDisplay;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -13,10 +12,8 @@ import android.view.Surface;
 
 import com.flyzebra.record.utils.ByteArrayTools;
 import com.flyzebra.record.utils.FlyLog;
-import com.flyzebra.record.utils.TimeUtil;
 import com.flyzebra.rtmp.RtmpClient;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ScreenRecorder {
     private MediaProjection mMediaProjection;
     private MediaCodec mediaCodec;
-    private MediaMuxer mediaMuxer;
 
     // parameters for the encoder
     private int mWidth = 1024;
@@ -100,23 +96,6 @@ public class ScreenRecorder {
 
     }
 
-    private void initMediaMuxer() {
-        try {
-            if (mediaMuxer == null) {
-                lastRecordTime = System.currentTimeMillis() / one_record_time;
-                File file = new File("/sdcard/flyrecord");
-                if (!file.exists()) {
-                    file.mkdirs();
-                }
-                String fileName = "/sdcard/flyrecord/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms) + ".mp4";
-                mediaMuxer = new MediaMuxer(fileName, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-                FlyLog.d("create new file: %s",fileName);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void createVirtualDisplay() {
         if (mVirtualDisplay == null) {
             mVirtualDisplay = mMediaProjection.createVirtualDisplay("SCREEN", mWidth, mHeight, 1,
@@ -158,9 +137,7 @@ public class ScreenRecorder {
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
 //                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" + mediaCodec.getOutputFormat().toString());
                         if (!isStop.get()) {
-                            initMediaMuxer();
-                            videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
-                            mediaMuxer.start();
+                            SaveRecordFile.getInstance().open(mediaCodec.getOutputFormat());
                             //TODO:send sps
                             //sendAVCDecoderConfigurationRecord(0, mediaCodec.getOutputFormat());
                         }
@@ -211,26 +188,14 @@ public class ScreenRecorder {
 //                                }
 //                                outputBuffer.reset();
                                 //保存文件
-                                long time = System.currentTimeMillis();
-                                if (time / one_record_time - lastRecordTime > 0 && frameType == 5) {
-                                    lastRecordTime = time;
-                                    mediaMuxer.stop();
-                                    mediaMuxer.release();
-                                    mediaMuxer = null;
-                                    initMediaMuxer();
-                                    videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
-                                    mediaMuxer.start();
-                                }
-                                mediaMuxer.writeSampleData(videoTrackIndex, outputBuffer, mBufferInfo);
+                                SaveRecordFile.getInstance().write(outputBuffer, mBufferInfo);
                             }
                         }
                         mediaCodec.releaseOutputBuffer(eobIndex, false);
                         break;
                 }
             }
-            mediaMuxer.stop();
-            mediaMuxer.release();
-            mediaMuxer = null;
+            SaveRecordFile.getInstance().close();
             mediaCodec.stop();
             mediaCodec.release();
             mediaCodec = null;
