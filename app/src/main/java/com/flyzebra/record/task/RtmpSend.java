@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 
 import com.flyzebra.record.utils.ByteArrayTools;
+import com.flyzebra.record.utils.ByteUtil;
+import com.flyzebra.record.utils.FlyLog;
 import com.flyzebra.rtmp.RtmpClient;
 
 import java.nio.ByteBuffer;
@@ -40,12 +42,12 @@ public class RtmpSend {
 
     public void open(final String url) {
         if (jniRtmpPointer.get() == -1) {
-            tHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    jniRtmpPointer.set(RtmpClient.open(url, true));
-                }
-            });
+//            tHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+            jniRtmpPointer.set(RtmpClient.open(url, true));
+//                }
+//            });
         }
     }
 
@@ -61,38 +63,58 @@ public class RtmpSend {
                 AVCDecoderConfigurationRecord.length);
         System.arraycopy(AVCDecoderConfigurationRecord, 0,
                 send, FLVPackager.FLV_VIDEO_TAG_LENGTH, AVCDecoderConfigurationRecord.length);
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, 0);
-            }
-        });
+//        tHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+        final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, 0);
+        FlyLog.d("send: %s",ByteUtil.bytes2String(send,20));
+//            }
+//        });
     }
 
-    public void send(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo,final int ts) {
-        if(jniRtmpPointer.get()==-1) return;
+    public void send(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo, final int ts) {
+        if (jniRtmpPointer.get() == -1) return;
         //获取帧类型
         outputBuffer.mark();
         Byte type = outputBuffer.get(4);
         int frameType = type & 0x1F;
         outputBuffer.reset();
-        //获取发送数据
+
         outputBuffer.mark();
-        int lengh = 5 + 4 + outputBuffer.remaining() - 4;
-        final byte send[] = new byte[lengh];
-        outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
+        outputBuffer.position(mBufferInfo.offset + 4);
+        int realDataLength = outputBuffer.remaining();
+        int packetLen = FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                FLVPackager.NALU_HEADER_LENGTH +
+                realDataLength;
+        byte[] send = new byte[packetLen];
+        outputBuffer.get(send, FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                        FLVPackager.NALU_HEADER_LENGTH,
+                realDataLength);
         FLVPackager.fillFlvVideoTag(send,
                 0,
                 false,
                 frameType == 5,
-                outputBuffer.remaining() - 4);
+                realDataLength);
         outputBuffer.reset();
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, ts);
-            }
-        });
+
+        //获取发送数据
+//        outputBuffer.mark();
+//        int lengh = 5 + 4 + outputBuffer.remaining() - 4;
+//        final byte send[] = new byte[lengh];
+//        outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
+//        FLVPackager.fillFlvVideoTag(send,
+//                0,
+//                false,
+//                frameType == 5,
+//                outputBuffer.remaining() - 4);
+//        outputBuffer.reset();
+//        tHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+        final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, ts);
+        FlyLog.d("send: %s",ByteUtil.bytes2String(send,20));
+//            }
+//        });
     }
 
 
@@ -100,12 +122,12 @@ public class RtmpSend {
         final long rtmp = jniRtmpPointer.get();
         jniRtmpPointer.set(-1);
         tHandler.removeCallbacksAndMessages(null);
-        tHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                RtmpClient.close(rtmp);
-            }
-        });
+//        tHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+        RtmpClient.close(rtmp);
+//            }
+//        });
     }
 
     public static class H264Packager {
