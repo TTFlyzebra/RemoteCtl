@@ -59,6 +59,9 @@ public class ScreenRecorder {
     private long jniRtmpPointer;
     private static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test1";
 
+    private long lastRecordTime = 0;
+    private long one_record_time = 60000;
+
     public static ScreenRecorder getInstance() {
         return ScreenRecorderHolder.sInstance;
     }
@@ -98,17 +101,15 @@ public class ScreenRecorder {
 
     }
 
-    private long recordStartTime = 0;
-
     private void initMediaMuxer() {
         try {
             if (mediaMuxer == null) {
-                recordStartTime = System.currentTimeMillis();
+                lastRecordTime = System.currentTimeMillis() / one_record_time;
                 File file = new File("/sdcard/flyrecord");
                 if (!file.exists()) {
                     file.mkdirs();
                 }
-                mediaMuxer = new MediaMuxer("/sdcard/flyrecord/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms)+".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                mediaMuxer = new MediaMuxer("/sdcard/flyrecord/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms) + ".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -211,9 +212,9 @@ public class ScreenRecorder {
 //                                outputBuffer.reset();
                                 //保存文件
                                 long time = System.currentTimeMillis();
-                                if (time - recordStartTime > 60000 && frameType == 5) {
+                                if (time / one_record_time - lastRecordTime > 0 && frameType == 5) {
                                     FlyLog.d("create new file");
-                                    recordStartTime = time;
+                                    lastRecordTime = time;
                                     mediaMuxer.stop();
                                     mediaMuxer.release();
                                     mediaMuxer = null;

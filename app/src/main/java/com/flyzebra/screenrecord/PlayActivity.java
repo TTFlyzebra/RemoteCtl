@@ -25,7 +25,7 @@ public class PlayActivity extends Activity {
 
         List<String> urls = new ArrayList<>();
 
-        File file = new File("/sdcard/flyrecord1");
+        File file = new File("/sdcard/flyrecord");
         if(file.exists()&&file.isDirectory()){
             File files[] = file.listFiles();
             for(File f:files){

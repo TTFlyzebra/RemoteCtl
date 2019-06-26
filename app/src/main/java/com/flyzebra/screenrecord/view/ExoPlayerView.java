@@ -205,8 +205,8 @@ public class ExoPlayerView extends LinearLayout {
             MediaSource mediaSource = new ExtractorMediaSource(videouri, dataSourceFactory, extractorsFactory, null, null);
             concatenatedSource = new ConcatenatingMediaSource(concatenatedSource, mediaSource);
         }
-        LoopingMediaSource loopingSource = new LoopingMediaSource(concatenatedSource);
-        player.prepare(loopingSource);
+//        LoopingMediaSource loopingSource = new LoopingMediaSource(concatenatedSource);
+        player.prepare(concatenatedSource);
         player.setPlayWhenReady(isPlay);
     }
 
