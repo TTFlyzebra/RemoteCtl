@@ -1,9 +1,10 @@
-package com.flyzebra.screenrecord;
+package com.flyzebra.screenrecord.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
+import com.flyzebra.screenrecord.R;
 import com.flyzebra.screenrecord.view.ExoPlayerView;
 
 import java.io.File;

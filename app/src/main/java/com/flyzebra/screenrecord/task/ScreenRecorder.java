@@ -13,7 +13,6 @@ import android.view.Surface;
 
 import com.flyzebra.rtmp.RtmpClient;
 import com.flyzebra.screenrecord.utils.ByteArrayTools;
-import com.flyzebra.screenrecord.utils.ByteUtil;
 import com.flyzebra.screenrecord.utils.FlyLog;
 import com.flyzebra.screenrecord.utils.TimeUtil;
 
@@ -109,7 +108,9 @@ public class ScreenRecorder {
                 if (!file.exists()) {
                     file.mkdirs();
                 }
-                mediaMuxer = new MediaMuxer("/sdcard/flyrecord/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms) + ".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                String fileName = "/sdcard/flyrecord/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms) + ".mp4";
+                mediaMuxer = new MediaMuxer(fileName, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                FlyLog.d("create new file: %s",fileName);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -149,23 +150,23 @@ public class ScreenRecorder {
                 int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
                 switch (eobIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED");
+//                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED");
                         break;
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
-                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_TRY_AGAIN_LATER");
+//                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_TRY_AGAIN_LATER");
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" + mediaCodec.getOutputFormat().toString());
-//                    sendAVCDecoderConfigurationRecord(0, mediaCodec.getOutputFormat());
+//                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" + mediaCodec.getOutputFormat().toString());
                         if (!isStop.get()) {
                             initMediaMuxer();
                             videoTrackIndex = mediaMuxer.addTrack(mediaCodec.getOutputFormat());
                             mediaMuxer.start();
+                            //TODO:send sps
+                            //sendAVCDecoderConfigurationRecord(0, mediaCodec.getOutputFormat());
                         }
-                        FlyLog.d("send format");
                         break;
                     default:
-                        FlyLog.v("VideoSenderThread,MediaCode,eobIndex=" + eobIndex);
+//                        FlyLog.v("VideoSenderThread,MediaCode,eobIndex=" + eobIndex);
                         if (startTime == 0) {
                             startTime = mBufferInfo.presentationTimeUs / 1000;
                         }
@@ -179,14 +180,13 @@ public class ScreenRecorder {
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 
+                            //获取帧类型
                             outputBuffer.mark();
                             byte index[] = new byte[8];
                             outputBuffer.get(index, 0, index.length);
                             outputBuffer.reset();
                             int frameType = index[4] & 0x1F;
-
-                            FlyLog.d("H264 I:%s", ByteUtil.bytes2String(index));
-
+//                            FlyLog.d("H264 I:%s", ByteUtil.bytes2String(index));
 //
                             if (!isStop.get()) {
                                 //发送文件
@@ -213,7 +213,6 @@ public class ScreenRecorder {
                                 //保存文件
                                 long time = System.currentTimeMillis();
                                 if (time / one_record_time - lastRecordTime > 0 && frameType == 5) {
-                                    FlyLog.d("create new file");
                                     lastRecordTime = time;
                                     mediaMuxer.stop();
                                     mediaMuxer.release();
@@ -224,7 +223,6 @@ public class ScreenRecorder {
                                 }
                                 mediaMuxer.writeSampleData(videoTrackIndex, outputBuffer, mBufferInfo);
                             }
-                            FlyLog.d("send buffer");
                         }
                         mediaCodec.releaseOutputBuffer(eobIndex, false);
                         break;

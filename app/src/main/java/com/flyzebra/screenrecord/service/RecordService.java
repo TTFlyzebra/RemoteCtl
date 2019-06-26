@@ -15,7 +15,7 @@ import android.provider.Settings;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.RemoteViews;
 
-import com.flyzebra.screenrecord.MainActivity;
+import com.flyzebra.screenrecord.ui.MainActivity;
 import com.flyzebra.screenrecord.utils.FlyLog;
 
 
