@@ -17,6 +17,7 @@ import com.flyzebra.screenrecord.utils.ByteUtil;
 import com.flyzebra.screenrecord.utils.FlyLog;
 import com.flyzebra.screenrecord.utils.TimeUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -103,7 +104,11 @@ public class ScreenRecorder {
         try {
             if (mediaMuxer == null) {
                 recordStartTime = System.currentTimeMillis();
-                mediaMuxer = new MediaMuxer("/sdcard/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                File file = new File("/sdcard/flyrecord");
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+                mediaMuxer = new MediaMuxer("/sdcard/flyrecord/" + TimeUtil.getCurrentTime(TimeUtil.ymdhms)+".mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -184,26 +189,26 @@ public class ScreenRecorder {
 //
                             if (!isStop.get()) {
                                 //发送文件
-                                outputBuffer.mark();
-                                int lengh = 5 + 4 + outputBuffer.remaining() - 4;
-                                byte send[] = new byte[lengh];
-                                outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
-                                FLVPackager.fillFlvVideoTag(send,
-                                        0,
-                                        false,
-                                        frameType == 5,
-                                        outputBuffer.remaining() - 4);
-                                final int res = RtmpClient.write(jniRtmpPointer,
-                                        send,
-                                        send.length,
-                                        9,
-                                        (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
-                                outputBuffer.reset();
-                                if (res == 0) {
-                                    FlyLog.d("video frame sent = " + send.length);
-                                } else {
-                                    FlyLog.e("writeError = " + res);
-                                }
+//                                outputBuffer.mark();
+//                                int lengh = 5 + 4 + outputBuffer.remaining() - 4;
+//                                byte send[] = new byte[lengh];
+//                                outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
+//                                FLVPackager.fillFlvVideoTag(send,
+//                                        0,
+//                                        false,
+//                                        frameType == 5,
+//                                        outputBuffer.remaining() - 4);
+//                                final int res = RtmpClient.write(jniRtmpPointer,
+//                                        send,
+//                                        send.length,
+//                                        9,
+//                                        (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+//                                if (res == 0) {
+//                                    FlyLog.d("video frame sent = " + send.length);
+//                                } else {
+//                                    FlyLog.e("writeError = " + res);
+//                                }
+//                                outputBuffer.reset();
                                 //保存文件
                                 long time = System.currentTimeMillis();
                                 if (time - recordStartTime > 60000 && frameType == 5) {
