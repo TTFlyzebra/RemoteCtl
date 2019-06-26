@@ -10,9 +10,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
-import com.flyzebra.record.utils.ByteArrayTools;
 import com.flyzebra.record.utils.FlyLog;
-import com.flyzebra.rtmp.RtmpClient;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -42,7 +40,7 @@ public class ScreenRecorder {
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
     private long startTime = 0;
-    private int videoTrackIndex;
+    private boolean isRecord = false;
 
     private static final HandlerThread sWorkerThread = new HandlerThread("screen-recorder");
 
@@ -119,27 +117,20 @@ public class ScreenRecorder {
                 }
             }
             isRunning.set(true);
-            jniRtmpPointer = RtmpClient.open(RTMP_ADDR, true);
-            byte[] MetaData = new FLvMetaData().getMetaData();
-            RtmpClient.write(jniRtmpPointer,
-                    MetaData,
-                    MetaData.length,
-                    18, 0);
+            RtmpSend.getInstance().open(RTMP_ADDR);
             while (!isStop.get()) {
                 int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
                 switch (eobIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-//                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED");
                         break;
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
-//                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_TRY_AGAIN_LATER");
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-//                        FlyLog.v("VideoSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" + mediaCodec.getOutputFormat().toString());
                         if (!isStop.get()) {
-                            SaveRecordFile.getInstance().open(mediaCodec.getOutputFormat());
-                            //TODO:send sps
-                            //sendAVCDecoderConfigurationRecord(0, mediaCodec.getOutputFormat());
+                            RtmpSend.getInstance().sendsps(mediaCodec.getOutputFormat());
+                            if (isRecord) {
+                                SaveRecordFile.getInstance().open(mediaCodec.getOutputFormat());
+                            }
                         }
                         break;
                     default:
@@ -157,87 +148,30 @@ public class ScreenRecorder {
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 
-                            //获取帧类型
-                            outputBuffer.mark();
-                            byte index[] = new byte[8];
-                            outputBuffer.get(index, 0, index.length);
-                            outputBuffer.reset();
-                            int frameType = index[4] & 0x1F;
-//                            FlyLog.d("H264 I:%s", ByteUtil.bytes2String(index));
-//
                             if (!isStop.get()) {
-                                //发送文件
-//                                outputBuffer.mark();
-//                                int lengh = 5 + 4 + outputBuffer.remaining() - 4;
-//                                byte send[] = new byte[lengh];
-//                                outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
-//                                FLVPackager.fillFlvVideoTag(send,
-//                                        0,
-//                                        false,
-//                                        frameType == 5,
-//                                        outputBuffer.remaining() - 4);
-//                                final int res = RtmpClient.write(jniRtmpPointer,
-//                                        send,
-//                                        send.length,
-//                                        9,
-//                                        (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
-//                                if (res == 0) {
-//                                    FlyLog.d("video frame sent = " + send.length);
-//                                } else {
-//                                    FlyLog.e("writeError = " + res);
-//                                }
-//                                outputBuffer.reset();
+                                RtmpSend.getInstance().send(outputBuffer, mBufferInfo);
                                 //保存文件
-                                SaveRecordFile.getInstance().write(outputBuffer, mBufferInfo);
+                                if (isRecord) {
+                                    SaveRecordFile.getInstance().write(outputBuffer, mBufferInfo);
+                                }
                             }
                         }
                         mediaCodec.releaseOutputBuffer(eobIndex, false);
                         break;
                 }
             }
-            SaveRecordFile.getInstance().close();
+            if (isRecord) {
+                SaveRecordFile.getInstance().close();
+            }
+            RtmpSend.getInstance().close();
             mediaCodec.stop();
             mediaCodec.release();
             mediaCodec = null;
             mVirtualDisplay.release();
             mVirtualDisplay = null;
             mMediaProjection.stop();
-            RtmpClient.close(jniRtmpPointer);
             isRunning.set(false);
         }
     };
 
-    public static class FLVPackager {
-        public static final int FLV_TAG_LENGTH = 11;
-        public static final int FLV_VIDEO_TAG_LENGTH = 5;
-        public static final int FLV_AUDIO_TAG_LENGTH = 2;
-        public static final int FLV_TAG_FOOTER_LENGTH = 4;
-        public static final int NALU_HEADER_LENGTH = 4;
-
-        public static void fillFlvVideoTag(byte[] dst, int pos, boolean isAVCSequenceHeader, boolean isIDR, int readDataLength) {
-            //FrameType&CodecID
-            dst[pos] = isIDR ? (byte) 0x17 : (byte) 0x27;
-            //AVCPacketType
-            dst[pos + 1] = isAVCSequenceHeader ? (byte) 0x00 : (byte) 0x01;
-            //LAKETODO CompositionTime
-            dst[pos + 2] = 0x00;
-            dst[pos + 3] = 0x00;
-            dst[pos + 4] = 0x00;
-            if (!isAVCSequenceHeader) {
-                //NALU HEADER
-                ByteArrayTools.intToByteArrayFull(dst, pos + 5, readDataLength);
-            }
-        }
-
-        public static void fillFlvAudioTag(byte[] dst, int pos, boolean isAACSequenceHeader) {
-            /**
-             * UB[4] 10=AAC
-             * UB[2] 3=44kHz
-             * UB[1] 1=16-bit
-             * UB[1] 0=MonoSound
-             */
-            dst[pos] = (byte) 0xAE;
-            dst[pos + 1] = isAACSequenceHeader ? (byte) 0x00 : (byte) 0x01;
-        }
-    }
 }
