@@ -110,4 +110,7 @@ public class MainActivity extends Activity {
         sendBroadcast(new Intent(RecordService.MAIN_ACTION_BROADCAST_EXIT));
     }
 
+    public void playRecord(View view) {
+        startActivity(new Intent(this,PlayActivity.class));
+    }
 }

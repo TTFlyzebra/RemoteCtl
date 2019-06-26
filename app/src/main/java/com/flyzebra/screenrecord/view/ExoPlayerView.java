@@ -3,6 +3,7 @@ package com.flyzebra.screenrecord.view;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
@@ -37,7 +38,6 @@ import java.util.List;
 
 
 /**
- *
  * Created by flyzebra on 17-2-16.
  */
 public class ExoPlayerView extends LinearLayout {
@@ -64,7 +64,7 @@ public class ExoPlayerView extends LinearLayout {
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             FlyLog.d("exoplay listerer onPlayerStateChanged isplay =" + playWhenReady + ",state=%d", playbackState);
-            if(playbackState==ExoPlayer.STATE_ENDED){
+            if (playbackState == ExoPlayer.STATE_ENDED) {
 //                setPlayUrl(uri,true);
             }
 
@@ -105,7 +105,7 @@ public class ExoPlayerView extends LinearLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-//        initializePlayer();
+        initializePlayer();
     }
 
     @Override
@@ -120,17 +120,17 @@ public class ExoPlayerView extends LinearLayout {
     }
 
     public long getVideoPosition() {
-        return player==null?0:player.getCurrentPosition();
+        return player == null ? 0 : player.getCurrentPosition();
     }
 
     public void play() {
-        if(player!=null){
+        if (player != null) {
             player.setPlayWhenReady(true);
         }
     }
 
     public void pause() {
-        if(player!=null){
+        if (player != null) {
             player.setPlayWhenReady(false);
         }
     }
@@ -138,9 +138,9 @@ public class ExoPlayerView extends LinearLayout {
     /**
      * 加载并开始播放视频
      */
-    public void playUri(Uri uri) {
+    public void playUri(String url) {
         initializePlayer();
-        setPlayUrl(uri, true);
+        setPlayUrl(url, true);
     }
 
     /**
@@ -183,7 +183,7 @@ public class ExoPlayerView extends LinearLayout {
             player = null;
 
         }
-        if(simpleExoPlayerView !=null ){
+        if (simpleExoPlayerView != null) {
             simpleExoPlayerView.setPlayer(null);
             simpleExoPlayerView = null;
         }
@@ -191,7 +191,7 @@ public class ExoPlayerView extends LinearLayout {
 
     private void setPlayUrls(List<String> urls, boolean isPlay) {
         FlyLog.d("paly urls= " + urls.toString());
-        if (urls.size() == 0) {
+        if (urls.isEmpty()) {
             return;
         }
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "ppfuns-launcher"));
@@ -210,26 +210,26 @@ public class ExoPlayerView extends LinearLayout {
         player.setPlayWhenReady(isPlay);
     }
 
-    private void setPlayUrl(Uri uri, boolean isPlay) {
-        FlyLog.d("paly urls= " + uri);
-        if(uri==null){
+    private void setPlayUrl(String url, boolean isPlay) {
+        FlyLog.d("paly urls= " + url);
+        if (TextUtils.isEmpty(url)) {
             FlyLog.d("play uri is null, set play url failed!");
             return;
         }
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "ppfuns-launcher"));
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-        MediaSource firstvideo = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
+        MediaSource firstvideo = new ExtractorMediaSource(Uri.parse(url), dataSourceFactory, extractorsFactory, null, null);
         //循环播放视频
         player.prepare(firstvideo);
         player.setPlayWhenReady(isPlay);
     }
 
-    public int getState(){
-        return player==null?ExoPlayer.STATE_IDLE:player.getPlaybackState();
+    public int getState() {
+        return player == null ? ExoPlayer.STATE_IDLE : player.getPlaybackState();
     }
 
     public void setDefaultArtwork(Bitmap bitmap) {
-        if(simpleExoPlayerView!=null){
+        if (simpleExoPlayerView != null) {
             simpleExoPlayerView.setDefaultArtwork(bitmap);
         }
     }
