@@ -49,11 +49,6 @@ public class ScreenRecorder {
     }
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
-    private long jniRtmpPointer;
-    private static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test";
-
-    private long lastRecordTime = 0;
-    private long one_record_time = 60000;
 
     public static ScreenRecorder getInstance() {
         return ScreenRecorderHolder.sInstance;
@@ -117,7 +112,7 @@ public class ScreenRecorder {
                 }
             }
             isRunning.set(true);
-            RtmpSend.getInstance().open(RTMP_ADDR);
+            RtmpSend.getInstance().open(RtmpSend.RTMP_ADDR);
             while (!isStop.get()) {
                 int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
                 switch (eobIndex) {
@@ -149,7 +144,7 @@ public class ScreenRecorder {
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 
                             if (!isStop.get()) {
-                                RtmpSend.getInstance().send(outputBuffer, mBufferInfo);
+                                RtmpSend.getInstance().send(outputBuffer, mBufferInfo,(int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
                                 //保存文件
                                 if (isRecord) {
                                     SaveRecordFile.getInstance().write(outputBuffer, mBufferInfo);

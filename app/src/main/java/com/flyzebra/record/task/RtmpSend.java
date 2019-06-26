@@ -27,6 +27,7 @@ public class RtmpSend {
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
+    public static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test";
 
     public static RtmpSend getInstance() {
         return RtmpSend.RtmpSendHolder.sInstance;
@@ -57,11 +58,28 @@ public class RtmpSend {
         });
     }
 
-    public void send(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo) {
+    public void send(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo,final int ts) {
+        if(jniRtmpPointer.get()==-1) return;
+        //获取帧类型
+        outputBuffer.mark();
+        Byte type = outputBuffer.get(4);
+        int frameType = type & 0x1F;
+        outputBuffer.reset();
+        //获取发送数据
+        outputBuffer.mark();
+        int lengh = 5 + 4 + outputBuffer.remaining() - 4;
+        final byte send[] = new byte[lengh];
+        outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
+        FLVPackager.fillFlvVideoTag(send,
+                0,
+                false,
+                frameType == 5,
+                outputBuffer.remaining() - 4);
+        outputBuffer.reset();
         tHandler.post(new Runnable() {
             @Override
             public void run() {
-
+                final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, ts);
             }
         });
     }
@@ -70,12 +88,56 @@ public class RtmpSend {
     public void close() {
         final long rtmp = jniRtmpPointer.get();
         jniRtmpPointer.set(-1);
+        tHandler.removeCallbacksAndMessages(null);
         tHandler.post(new Runnable() {
             @Override
             public void run() {
                 RtmpClient.close(rtmp);
             }
         });
+    }
+
+    public static class H264Packager {
+
+        public static byte[] generateAVCDecoderConfigurationRecord(MediaFormat mediaFormat) {
+            ByteBuffer SPSByteBuff = mediaFormat.getByteBuffer("csd-0");
+            SPSByteBuff.position(4);
+            ByteBuffer PPSByteBuff = mediaFormat.getByteBuffer("csd-1");
+            PPSByteBuff.position(4);
+            int spslength = SPSByteBuff.remaining();
+            int ppslength = PPSByteBuff.remaining();
+            int length = 11 + spslength + ppslength;
+            byte[] result = new byte[length];
+            SPSByteBuff.get(result, 8, spslength);
+            PPSByteBuff.get(result, 8 + spslength + 3, ppslength);
+            /**
+             * UB[8]configurationVersion
+             * UB[8]AVCProfileIndication
+             * UB[8]profile_compatibility
+             * UB[8]AVCLevelIndication
+             * UB[8]lengthSizeMinusOne
+             */
+            result[0] = 0x01;
+            result[1] = result[9];
+            result[2] = result[10];
+            result[3] = result[11];
+            result[4] = (byte) 0xFF;
+            /**
+             * UB[8]numOfSequenceParameterSets
+             * UB[16]sequenceParameterSetLength
+             */
+            result[5] = (byte) 0xE1;
+            ByteArrayTools.intToByteArrayTwoByte(result, 6, spslength);
+            /**
+             * UB[8]numOfPictureParameterSets
+             * UB[16]pictureParameterSetLength
+             */
+            int pos = 8 + spslength;
+            result[pos] = (byte) 0x01;
+            ByteArrayTools.intToByteArrayTwoByte(result, pos + 1, ppslength);
+
+            return result;
+        }
     }
 
     public static class FLVPackager {
