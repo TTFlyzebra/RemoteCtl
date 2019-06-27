@@ -11,6 +11,8 @@ import com.flyzebra.record.utils.FlyLog;
 import com.flyzebra.rtmp.RtmpClient;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -19,6 +21,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * Describ:
  **/
 public class RtmpSend {
+    private static final int MAX_QUEUE_CAPACITY = 500;
+    private AtomicBoolean mQuit = new AtomicBoolean(false);
+    private LinkedBlockingDeque<byte[]> frameQueue = new LinkedBlockingDeque<>(MAX_QUEUE_CAPACITY);
 
     private static final HandlerThread sWorkerThread = new HandlerThread("screen-rtmp");
 
@@ -112,7 +117,7 @@ public class RtmpSend {
 //            @Override
 //            public void run() {
         final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, ts);
-        FlyLog.d("send: %s",ByteUtil.bytes2String(send,20));
+        FlyLog.d("send res=%d, %s",res,ByteUtil.bytes2String(send,20));
 //            }
 //        });
     }

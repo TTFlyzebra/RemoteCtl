@@ -40,7 +40,7 @@ public class ScreenRecorder {
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
     private long startTime = 0;
-    private boolean isRecord = false;
+    private boolean isRecord = true;
 
     private static final HandlerThread sWorkerThread = new HandlerThread("screen-recorder");
 
