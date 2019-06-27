@@ -56,7 +56,7 @@ public class RtmpSend {
                 if (frameQueue.size() > 0) {
                     RtmpData rtmpData = frameQueue.pop();
                     RtmpClient.write(jniRtmpPointer.get(), rtmpData.buffer, rtmpData.buffer.length, rtmpData.type, rtmpData.ts);
-                    FlyLog.d("size=%d,send: %s", frameQueue.size(),ByteUtil.bytes2String(rtmpData.buffer, 20));
+                    FlyLog.d("size=%d,send: %s", frameQueue.size(),ByteUtil.bytes2String(rtmpData.buffer, 10));
                 }
             }
         }
