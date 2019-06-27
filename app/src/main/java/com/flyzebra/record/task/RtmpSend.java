@@ -5,6 +5,10 @@ import android.media.MediaFormat;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import com.flyzebra.record.bean.RtmpData;
+import com.flyzebra.record.model.FLvMetaData;
+import com.flyzebra.record.model.RESCoreParameters;
+import com.flyzebra.record.model.RESFlvData;
 import com.flyzebra.record.utils.ByteArrayTools;
 import com.flyzebra.record.utils.ByteUtil;
 import com.flyzebra.record.utils.FlyLog;
@@ -23,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RtmpSend {
     private static final int MAX_QUEUE_CAPACITY = 500;
     private AtomicBoolean mQuit = new AtomicBoolean(false);
-    private LinkedBlockingDeque<byte[]> frameQueue = new LinkedBlockingDeque<>(MAX_QUEUE_CAPACITY);
+    private LinkedBlockingDeque<RtmpData> frameQueue = new LinkedBlockingDeque<>(MAX_QUEUE_CAPACITY);
 
     private static final HandlerThread sWorkerThread = new HandlerThread("screen-rtmp");
 
@@ -45,15 +49,47 @@ public class RtmpSend {
         public static final RtmpSend sInstance = new RtmpSend();
     }
 
+    public Runnable runTask = new Runnable() {
+        @Override
+        public void run() {
+            while (jniRtmpPointer.get() != -1) {
+                if (frameQueue.size() > 0) {
+                    RtmpData rtmpData = frameQueue.pop();
+                    RtmpClient.write(jniRtmpPointer.get(), rtmpData.buffer, rtmpData.buffer.length, rtmpData.type, rtmpData.ts);
+                    FlyLog.d("size=%d,send: %s", frameQueue.size(),ByteUtil.bytes2String(rtmpData.buffer, 20));
+                }
+            }
+        }
+    };
+
+
     public void open(final String url) {
         if (jniRtmpPointer.get() == -1) {
 //            tHandler.post(new Runnable() {
 //                @Override
 //                public void run() {
             jniRtmpPointer.set(RtmpClient.open(url, true));
+
+            RESCoreParameters coreParameters = new RESCoreParameters();
+            coreParameters.mediacodecAACBitRate = RESFlvData.AAC_BITRATE;
+            coreParameters.mediacodecAACSampleRate = RESFlvData.AAC_SAMPLE_RATE;
+            coreParameters.mediacodecAVCFrameRate = RESFlvData.FPS;
+            coreParameters.videoWidth = RESFlvData.VIDEO_WIDTH;
+            coreParameters.videoHeight = RESFlvData.VIDEO_HEIGHT;
+
+            FLvMetaData fLvMetaData = new FLvMetaData(coreParameters);
+            byte[] metaData = fLvMetaData.getMetaData();
+            RtmpData rtmpData = new RtmpData();
+            rtmpData.buffer = metaData;
+            rtmpData.type = 18;
+            rtmpData.ts = 0;
+            frameQueue.add(rtmpData);
+//            RtmpClient.write(jniRtmpPointer.get(), metaData, metaData.length, 18, 0);
+//            FlyLog.d("send metadata: %s", ByteUtil.bytes2String(metaData, 20));
 //                }
 //            });
         }
+        tHandler.post(runTask);
     }
 
     public void sendsps(MediaFormat format) {
@@ -71,8 +107,13 @@ public class RtmpSend {
 //        tHandler.post(new Runnable() {
 //            @Override
 //            public void run() {
-        final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, 0);
-        FlyLog.d("send: %s",ByteUtil.bytes2String(send,20));
+        RtmpData rtmpData = new RtmpData();
+        rtmpData.buffer = send;
+        rtmpData.type = 9;
+        rtmpData.ts = 0;
+        frameQueue.add(rtmpData);
+//        final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, 0);
+//        FlyLog.d("send sps: %s", ByteUtil.bytes2String(send, 20));
 //            }
 //        });
     }
@@ -85,6 +126,7 @@ public class RtmpSend {
         int frameType = type & 0x1F;
         outputBuffer.reset();
 
+        //获取发送数据
         outputBuffer.mark();
         outputBuffer.position(mBufferInfo.offset + 4);
         int realDataLength = outputBuffer.remaining();
@@ -102,22 +144,16 @@ public class RtmpSend {
                 realDataLength);
         outputBuffer.reset();
 
-        //获取发送数据
-//        outputBuffer.mark();
-//        int lengh = 5 + 4 + outputBuffer.remaining() - 4;
-//        final byte send[] = new byte[lengh];
-//        outputBuffer.get(send, 9, outputBuffer.remaining() - 4);
-//        FLVPackager.fillFlvVideoTag(send,
-//                0,
-//                false,
-//                frameType == 5,
-//                outputBuffer.remaining() - 4);
-//        outputBuffer.reset();
 //        tHandler.post(new Runnable() {
 //            @Override
 //            public void run() {
-        final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, ts);
-        FlyLog.d("send res=%d, %s",res,ByteUtil.bytes2String(send,20));
+        RtmpData rtmpData = new RtmpData();
+        rtmpData.buffer = send;
+        rtmpData.type = 9;
+        rtmpData.ts = ts;
+        frameQueue.add(rtmpData);
+//        final int res = RtmpClient.write(jniRtmpPointer.get(), send, send.length, 9, ts);
+//        FlyLog.v("send res=%d, %s", res, ByteUtil.bytes2String(send, 20));
 //            }
 //        });
     }
