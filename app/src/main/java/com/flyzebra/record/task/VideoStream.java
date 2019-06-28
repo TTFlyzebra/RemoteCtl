@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 2019/6/18 16:12
  * Describ:
  **/
-public class VideoStreamTask {
+public class VideoStream {
     private MediaProjection mMediaProjection;
     private MediaCodec mediaCodec;
 
@@ -42,7 +42,7 @@ public class VideoStreamTask {
     private long startTime = 0;
     private boolean isRecord = true;
 
-    private static final HandlerThread sWorkerThread = new HandlerThread("screen-recorder");
+    private static final HandlerThread sWorkerThread = new HandlerThread("screen-video");
 
     static {
         sWorkerThread.start();
@@ -50,12 +50,12 @@ public class VideoStreamTask {
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
-    public static VideoStreamTask getInstance() {
-        return ScreenRecorderHolder.sInstance;
+    public static VideoStream getInstance() {
+        return VideoStreamHolder.sInstance;
     }
 
-    private static class ScreenRecorderHolder {
-        public static final VideoStreamTask sInstance = new VideoStreamTask();
+    private static class VideoStreamHolder {
+        public static final VideoStream sInstance = new VideoStream();
     }
 
     public boolean isRunning() {
@@ -104,6 +104,7 @@ public class VideoStreamTask {
     private Runnable runTask = new Runnable() {
         @Override
         public void run() {
+            FlyLog.d("send video task start!");
             while (isRunning.get()) {
                 try {
                     Thread.sleep(100);
@@ -122,21 +123,16 @@ public class VideoStreamTask {
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                         if (!isStop.get()) {
-                            RtmpSendTask.getInstance().sendsps(mediaCodec.getOutputFormat());
+                            RtmpSendTask.getInstance().sendVideoSPS(mediaCodec.getOutputFormat());
                             if (isRecord) {
-                                SaveFileTask.getInstance().open(mediaCodec.getOutputFormat());
+                                SaveFileTask.getInstance().open(SaveFileTask.OPEN_VIDEO, mediaCodec.getOutputFormat());
                             }
                         }
                         break;
                     default:
-//                        FlyLog.v("VideoSenderThread,MediaCode,eobIndex=" + eobIndex);
                         if (startTime == 0) {
                             startTime = mBufferInfo.presentationTimeUs / 1000;
                         }
-                        /**
-                         * we send sps pps already in INFO_OUTPUT_FORMAT_CHANGED
-                         * so we ignore MediaCodec.BUFFER_FLAG_CODEC_CONFIG
-                         */
                         if (mBufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && mBufferInfo.size != 0) {
                             ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
                             ByteBuffer outputBuffer = outputBuffers[eobIndex];
@@ -144,10 +140,10 @@ public class VideoStreamTask {
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 
                             if (!isStop.get()) {
-                                RtmpSendTask.getInstance().send(outputBuffer, mBufferInfo,(int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+                                RtmpSendTask.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
                                 //保存文件
                                 if (isRecord) {
-                                    SaveFileTask.getInstance().write(outputBuffer, mBufferInfo);
+                                    SaveFileTask.getInstance().writeVideoTrack(outputBuffer, mBufferInfo);
                                 }
                             }
                         }
@@ -155,17 +151,16 @@ public class VideoStreamTask {
                         break;
                 }
             }
-            if (isRecord) {
-                SaveFileTask.getInstance().close();
-            }
+            SaveFileTask.getInstance().close();
             RtmpSendTask.getInstance().close();
-            mediaCodec.stop();
-            mediaCodec.release();
-            mediaCodec = null;
             mVirtualDisplay.release();
             mVirtualDisplay = null;
             mMediaProjection.stop();
+            mediaCodec.stop();
+            mediaCodec.release();
+            mediaCodec = null;
             isRunning.set(false);
+            FlyLog.d("send video task end!");
         }
     };
 

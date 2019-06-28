@@ -9,4 +9,5 @@ public class RtmpData {
     public byte[] buffer;
     public int type;
     public int ts;
+    public boolean droppable;
 }
