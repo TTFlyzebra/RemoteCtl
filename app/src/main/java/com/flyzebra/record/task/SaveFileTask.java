@@ -80,7 +80,7 @@ public class SaveFileTask {
             }
             String fileName = SAVA_PATH + File.separator + TimeUtil.getCurrentTime(FILE_FORMAT) + ".mp4";
             mediaMuxer = new MediaMuxer(fileName, OUT_FORMAT);
-            FlyLog.d("create new file: %s", fileName);
+            FlyLog.d("create new MediaMuxer: %s", fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -126,6 +126,7 @@ public class SaveFileTask {
 
     private void startMediaMuxer() {
         if (!isStartMediaMuxer.get() && isAddAudioTrack.get() && isAddVideoTrack.get()) {
+            FlyLog.d("MediaMuxer start");
             mediaMuxer.start();
             isStartMediaMuxer.set(true);
         }
@@ -140,7 +141,7 @@ public class SaveFileTask {
         write(audioTrack, outputBuffer, mBufferInfo);
     }
 
-    public void write(int videoTrack, final ByteBuffer outputBuffer, final MediaCodec.BufferInfo mBufferInfo) {
+    public void write(int indexTrack, final ByteBuffer outputBuffer, final MediaCodec.BufferInfo mBufferInfo) {
         if (mediaMuxer != null) {
             //获取帧类型
             outputBuffer.mark();
@@ -155,19 +156,20 @@ public class SaveFileTask {
                 addVideoTrack(mVideoMediaFormat);
                 addAudioTrack(mAudioMediaFormat);
             }
-            mediaMuxer.writeSampleData(videoTrack, outputBuffer, mBufferInfo);
+            mediaMuxer.writeSampleData(indexTrack, outputBuffer, mBufferInfo);
         }
 
     }
 
     public void close() {
         isAddVideoTrack.set(false);
-        isAddAudioTrack.set(false);
+        isAddAudioTrack.set(!isRecordAudio);
         isStartMediaMuxer.set(false);
         if (mediaMuxer != null) {
             mediaMuxer.stop();
             mediaMuxer.release();
+            mediaMuxer = null;
+            FlyLog.d("MediaMuxer close");
         }
-        mediaMuxer = null;
     }
 }
