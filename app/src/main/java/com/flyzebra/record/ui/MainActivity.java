@@ -13,7 +13,7 @@ import android.view.View;
 
 import com.flyzebra.record.R;
 import com.flyzebra.record.service.RecordService;
-import com.flyzebra.record.task.ScreenRecorder;
+import com.flyzebra.record.task.VideoStreamTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
 
     public void captureAndStartRecord(View view) {
         if (isPermission) {
-            if (mMediaProjectionManager != null && !ScreenRecorder.getInstance().isRunning()) {
+            if (mMediaProjectionManager != null && !VideoStreamTask.getInstance().isRunning()) {
                 Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
                 startActivityForResult(captureIntent, REQUEST_CODE);
             }
@@ -103,11 +103,11 @@ public class MainActivity extends Activity {
     private void startRecord(MediaProjectionManager mMediaProjectionManager, int resultCode, Intent data) {
         moveTaskToBack(true);
         startService(new Intent(this, RecordService.class));
-        ScreenRecorder.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
+        VideoStreamTask.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
     }
 
     public void stopRecord(View view) {
-        ScreenRecorder.getInstance().stop();
+        VideoStreamTask.getInstance().stop();
         sendBroadcast(new Intent(RecordService.MAIN_ACTION_BROADCAST_EXIT));
     }
 

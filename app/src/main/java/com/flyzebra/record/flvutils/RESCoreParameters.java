@@ -1,4 +1,4 @@
-package com.flyzebra.record.model;
+package com.flyzebra.record.flvutils;
 
 
 import java.lang.reflect.Field;

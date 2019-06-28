@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 2019/6/18 16:12
  * Describ:
  **/
-public class ScreenRecorder {
+public class VideoStreamTask {
     private MediaProjection mMediaProjection;
     private MediaCodec mediaCodec;
 
@@ -50,12 +50,12 @@ public class ScreenRecorder {
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
-    public static ScreenRecorder getInstance() {
+    public static VideoStreamTask getInstance() {
         return ScreenRecorderHolder.sInstance;
     }
 
     private static class ScreenRecorderHolder {
-        public static final ScreenRecorder sInstance = new ScreenRecorder();
+        public static final VideoStreamTask sInstance = new VideoStreamTask();
     }
 
     public boolean isRunning() {
@@ -112,7 +112,7 @@ public class ScreenRecorder {
                 }
             }
             isRunning.set(true);
-            RtmpSend.getInstance().open(RtmpSend.RTMP_ADDR);
+            RtmpSendTask.getInstance().open(RtmpSendTask.RTMP_ADDR);
             while (!isStop.get()) {
                 int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
                 switch (eobIndex) {
@@ -122,9 +122,9 @@ public class ScreenRecorder {
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                         if (!isStop.get()) {
-                            RtmpSend.getInstance().sendsps(mediaCodec.getOutputFormat());
+                            RtmpSendTask.getInstance().sendsps(mediaCodec.getOutputFormat());
                             if (isRecord) {
-                                SaveRecordFile.getInstance().open(mediaCodec.getOutputFormat());
+                                SaveFileTask.getInstance().open(mediaCodec.getOutputFormat());
                             }
                         }
                         break;
@@ -144,10 +144,10 @@ public class ScreenRecorder {
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
 
                             if (!isStop.get()) {
-                                RtmpSend.getInstance().send(outputBuffer, mBufferInfo,(int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+                                RtmpSendTask.getInstance().send(outputBuffer, mBufferInfo,(int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
                                 //保存文件
                                 if (isRecord) {
-                                    SaveRecordFile.getInstance().write(outputBuffer, mBufferInfo);
+                                    SaveFileTask.getInstance().write(outputBuffer, mBufferInfo);
                                 }
                             }
                         }
@@ -156,9 +156,9 @@ public class ScreenRecorder {
                 }
             }
             if (isRecord) {
-                SaveRecordFile.getInstance().close();
+                SaveFileTask.getInstance().close();
             }
-            RtmpSend.getInstance().close();
+            RtmpSendTask.getInstance().close();
             mediaCodec.stop();
             mediaCodec.release();
             mediaCodec = null;

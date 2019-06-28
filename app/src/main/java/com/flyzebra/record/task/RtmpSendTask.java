@@ -6,9 +6,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 
 import com.flyzebra.record.bean.RtmpData;
-import com.flyzebra.record.model.FLvMetaData;
-import com.flyzebra.record.model.RESCoreParameters;
-import com.flyzebra.record.model.RESFlvData;
+import com.flyzebra.record.flvutils.FLvMetaData;
+import com.flyzebra.record.flvutils.RESCoreParameters;
+import com.flyzebra.record.flvutils.RESFlvData;
 import com.flyzebra.record.utils.ByteArrayTools;
 import com.flyzebra.record.utils.ByteUtil;
 import com.flyzebra.record.utils.FlyLog;
@@ -16,7 +16,6 @@ import com.flyzebra.rtmp.RtmpClient;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -24,12 +23,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * 2019/6/26 15:15
  * Describ:
  **/
-public class RtmpSend {
-    private static final int MAX_QUEUE_CAPACITY = 500;
-    private AtomicBoolean mQuit = new AtomicBoolean(false);
+public class RtmpSendTask {
+    private static final int MAX_QUEUE_CAPACITY = 100;
     private LinkedBlockingDeque<RtmpData> frameQueue = new LinkedBlockingDeque<>(MAX_QUEUE_CAPACITY);
 
-    private static final HandlerThread sWorkerThread = new HandlerThread("screen-rtmp");
+    private static final HandlerThread sWorkerThread = new HandlerThread("send-rtmp");
 
     static {
         sWorkerThread.start();
@@ -40,13 +38,13 @@ public class RtmpSend {
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
     public static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test";
 
-    public static RtmpSend getInstance() {
-        return RtmpSend.RtmpSendHolder.sInstance;
+    public static RtmpSendTask getInstance() {
+        return RtmpSendTask.RtmpSendHolder.sInstance;
     }
 
 
     private static class RtmpSendHolder {
-        public static final RtmpSend sInstance = new RtmpSend();
+        public static final RtmpSendTask sInstance = new RtmpSendTask();
     }
 
     public Runnable runTask = new Runnable() {

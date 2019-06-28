@@ -1,4 +1,4 @@
-package com.flyzebra.record.model;
+package com.flyzebra.record.flvutils;
 
 /**
  * Created by lake on 16-3-16.
