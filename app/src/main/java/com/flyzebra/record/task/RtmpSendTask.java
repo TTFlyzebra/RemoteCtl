@@ -6,10 +6,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 
 import com.flyzebra.record.bean.RtmpData;
-import com.flyzebra.record.flvutils.FLvMetaData;
 import com.flyzebra.record.flvutils.Packager;
-import com.flyzebra.record.flvutils.RESCoreParameters;
-import com.flyzebra.record.flvutils.RESFlvData;
 import com.flyzebra.record.utils.ByteUtil;
 import com.flyzebra.record.utils.FlyLog;
 import com.flyzebra.rtmp.RtmpClient;
@@ -19,7 +16,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.flyzebra.record.flvutils.RESFlvData.FLV_RTMP_PACKET_TYPE_AUDIO;
-import static com.flyzebra.record.flvutils.RESFlvData.FLV_RTMP_PACKET_TYPE_INFO;
 import static com.flyzebra.record.flvutils.RESFlvData.FLV_RTMP_PACKET_TYPE_VIDEO;
 
 /**
@@ -68,22 +64,23 @@ public class RtmpSendTask {
     public void open(final String url) {
         if (jniRtmpPointer.get() == -1) {
             jniRtmpPointer.set(RtmpClient.open(url, true));
+//            RESCoreParameters coreParameters = new RESCoreParameters();
+//            coreParameters.mediacodecAACBitRate = RESFlvData.AAC_BITRATE;
+//            coreParameters.mediacodecAACSampleRate = RESFlvData.AAC_SAMPLE_RATE;
+//            coreParameters.mediacodecAVCFrameRate = RESFlvData.FPS;
+//            coreParameters.videoWidth = RESFlvData.VIDEO_WIDTH;
+//            coreParameters.videoHeight = RESFlvData.VIDEO_HEIGHT;
+//
+//            FLvMetaData fLvMetaData = new FLvMetaData(coreParameters);
+//            byte[] metaData = fLvMetaData.getMetaData();
+//            RtmpData rtmpData = new RtmpData();
+//            rtmpData.buffer = metaData;
+//            rtmpData.type = FLV_RTMP_PACKET_TYPE_INFO;
+//            rtmpData.ts = 0;
+//            frameQueue.add(rtmpData);
+            tHandler.post(runTask);
         }
-        RESCoreParameters coreParameters = new RESCoreParameters();
-        coreParameters.mediacodecAACBitRate = RESFlvData.AAC_BITRATE;
-        coreParameters.mediacodecAACSampleRate = RESFlvData.AAC_SAMPLE_RATE;
-        coreParameters.mediacodecAVCFrameRate = RESFlvData.FPS;
-        coreParameters.videoWidth = RESFlvData.VIDEO_WIDTH;
-        coreParameters.videoHeight = RESFlvData.VIDEO_HEIGHT;
 
-        FLvMetaData fLvMetaData = new FLvMetaData(coreParameters);
-        byte[] metaData = fLvMetaData.getMetaData();
-        RtmpData rtmpData = new RtmpData();
-        rtmpData.buffer = metaData;
-        rtmpData.type = FLV_RTMP_PACKET_TYPE_INFO;
-        rtmpData.ts = 0;
-        frameQueue.add(rtmpData);
-        tHandler.post(runTask);
     }
 
     public void sendAudioSPS(MediaFormat format) {
@@ -143,8 +140,7 @@ public class RtmpSendTask {
         //获取帧类型
         int packetLen = Packager.FLVPackager.FLV_AUDIO_TAG_LENGTH + realData.remaining();
         byte[] sendBytes = new byte[packetLen];
-        realData.get(sendBytes, Packager.FLVPackager.FLV_AUDIO_TAG_LENGTH,
-                realData.remaining());
+        realData.get(sendBytes, Packager.FLVPackager.FLV_AUDIO_TAG_LENGTH, realData.remaining());
         Packager.FLVPackager.fillFlvAudioTag(sendBytes, 0, false);
         RtmpData rtmpData = new RtmpData();
         rtmpData.buffer = sendBytes;

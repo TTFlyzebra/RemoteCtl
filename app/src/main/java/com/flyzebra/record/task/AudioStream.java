@@ -8,7 +8,10 @@ import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.util.Log;
+
+import com.flyzebra.record.utils.FlyLog;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +33,7 @@ public class AudioStream {
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private MediaCodec mAudioEncoder;
     private MediaFormat dstAudioFormat;
-    private MediaCodec.BufferInfo eInfo = new MediaCodec.BufferInfo();
+    private MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
     private static final HandlerThread sWorkerThread = new HandlerThread("encode-audio");
 
@@ -63,6 +66,17 @@ public class AudioStream {
             while (isRunning.get()) {
                 int size = mAudioRecord.read(audioBuffer, 0, audioBuffer.length);
                 if (size > 0) {
+                    long nowTimeMs = SystemClock.uptimeMillis();
+                    int eibIndex = mAudioEncoder.dequeueInputBuffer(-1);
+                    if (eibIndex >= 0) {
+                        ByteBuffer dstAudioEncoderIBuffer = mAudioEncoder.getInputBuffers()[eibIndex];
+                        dstAudioEncoderIBuffer.position(0);
+                        dstAudioEncoderIBuffer.put(audioBuffer, 0, audioBuffer.length);
+                        mAudioEncoder.queueInputBuffer(eibIndex, 0, audioBuffer.length, nowTimeMs * 1000, 0);
+                    } else {
+                        FlyLog.d("dstAudioEncoder.dequeueInputBuffer(-1)<0");
+                    }
+                    FlyLog.d("AudioFilterHandler,ProcessTime:" + (System.currentTimeMillis() - nowTimeMs));
                 }
             }
         }
@@ -72,7 +86,8 @@ public class AudioStream {
         @Override
         public void run() {
             while (isRunning.get()) {
-                int eobIndex = mAudioEncoder.dequeueOutputBuffer(eInfo, WAIT_TIME);
+                RtmpSendTask.getInstance().open(RtmpSendTask.RTMP_ADDR);
+                int eobIndex = mAudioEncoder.dequeueOutputBuffer(bufferInfo, WAIT_TIME);
                 switch (eobIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
                         Log.d(TAG, "AudioSenderThread,MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED");
@@ -81,38 +96,36 @@ public class AudioStream {
 //                        LogTools.d("AudioSenderThread,MediaCodec.INFO_TRY_AGAIN_LATER");
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                        Log.d(TAG, "AudioSenderThread,MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:" +
-                                mAudioEncoder.getOutputFormat().toString());
-                        ByteBuffer csd0 = mAudioEncoder.getOutputFormat().getByteBuffer("csd-0");
-//                        sendAudioSpecificConfig(0, csd0);
+                        RtmpSendTask.getInstance().sendAudioSPS(mAudioEncoder.getOutputFormat());
                         break;
                     default:
                         Log.d(TAG, "AudioSenderThread,MediaCode,eobIndex=" + eobIndex);
                         if (startTime == 0) {
-                            startTime = (int) (eInfo.presentationTimeUs / 1000);
+                            startTime = (int) (bufferInfo.presentationTimeUs / 1000);
                         }
                         /**
                          * we send audio SpecificConfig already in INFO_OUTPUT_FORMAT_CHANGED
                          * so we ignore MediaCodec.BUFFER_FLAG_CODEC_CONFIG
                          */
-                        if (eInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && eInfo.size != 0) {
+                        if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && bufferInfo.size != 0) {
                             ByteBuffer realData = mAudioEncoder.getOutputBuffers()[eobIndex];
-                            realData.position(eInfo.offset);
-                            realData.limit(eInfo.offset + eInfo.size);
+                            realData.position(bufferInfo.offset);
+                            realData.limit(bufferInfo.offset + bufferInfo.size);
+                            RtmpSendTask.getInstance().sendAudioFrame(realData, (int) (bufferInfo.presentationTimeUs / 1000));
 //                            sendRealData((eInfo.presentationTimeUs / 1000) - startTime, realData);
                         }
                         mAudioEncoder.releaseOutputBuffer(eobIndex, false);
                         break;
                 }
             }
-            eInfo = null;
+            bufferInfo = null;
         }
     };
 
 
     public void start() {
-        initAudioRecord();
         initAudioEncoder();
+        initAudioRecord();
         tHandler.post(runPutTask);
         sHandler.post(runSendTask);
     }
