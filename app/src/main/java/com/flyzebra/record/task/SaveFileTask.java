@@ -5,6 +5,8 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.SystemClock;
 
 import com.flyzebra.record.bean.RtmpData;
 import com.flyzebra.record.utils.FlyLog;
@@ -48,6 +50,9 @@ public class SaveFileTask {
     }
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    private final Object synObj = new Object();
 
     public static SaveFileTask getInstance() {
         return SaveRecordFileHolder.sInstance;
@@ -60,10 +65,12 @@ public class SaveFileTask {
     public Runnable runTask = new Runnable() {
         @Override
         public void run() {
-            while (isAddVideoTrack.get()) {
+            while (isStartMediaMuxer.get()) {
                 if (fileQuque.size() > 0) {
+
                 }
             }
+            fileQuque.clear();
         }
     };
 
@@ -88,7 +95,7 @@ public class SaveFileTask {
     }
 
 
-    public void open(int type, MediaFormat format) {
+    public synchronized void open(int type, MediaFormat format) {
         if (!isRecordAudio) {
             isAddAudioTrack.set(true);
         }
@@ -103,7 +110,7 @@ public class SaveFileTask {
     }
 
 
-    private void addVideoTrack(final MediaFormat format) {
+    private synchronized void addVideoTrack(final MediaFormat format) {
         if (!isAddVideoTrack.get() && format != null) {
             mVideoMediaFormat = format;
             videoTrack = mediaMuxer.addTrack(format);
@@ -113,7 +120,7 @@ public class SaveFileTask {
 
     }
 
-    private void addAudioTrack(final MediaFormat format) {
+    private synchronized void addAudioTrack(final MediaFormat format) {
         if (!isAddAudioTrack.get() && format != null) {
             mAudioMediaFormat = format;
             audioTrack = mediaMuxer.addTrack(format);
@@ -129,6 +136,7 @@ public class SaveFileTask {
             FlyLog.d("MediaMuxer start");
             mediaMuxer.start();
             isStartMediaMuxer.set(true);
+            tHandler.post(runTask);
         }
     }
 
@@ -141,22 +149,40 @@ public class SaveFileTask {
         write(audioTrack, outputBuffer, mBufferInfo);
     }
 
-    public void write(int indexTrack, final ByteBuffer outputBuffer, final MediaCodec.BufferInfo mBufferInfo) {
-        if (mediaMuxer != null) {
-            //获取帧类型
-            outputBuffer.mark();
-            Byte type = outputBuffer.get(4);
-            int frameType = type & 0x1F;
-            outputBuffer.reset();
+    private long lasttime = 0;
 
-            long time = System.currentTimeMillis();
-            if (time / ONE_RECORD_TIME - lastRecordTime > 0 && frameType == 5) {
-                close();
-                initMediaMuxer();
-                addVideoTrack(mVideoMediaFormat);
-                addAudioTrack(mAudioMediaFormat);
+    public synchronized void write(int indexTrack, final ByteBuffer outputBuffer, final MediaCodec.BufferInfo mBufferInfo) {
+        synchronized (synObj) {
+            if (mediaMuxer != null) {
+                //获取帧类型
+                outputBuffer.mark();
+                Byte type = outputBuffer.get(4);
+                int frameType = type & 0x1F;
+                outputBuffer.reset();
+
+                long time = System.currentTimeMillis();
+                if (time / ONE_RECORD_TIME - lastRecordTime > 0 && frameType == 5) {
+                    close();
+                    initMediaMuxer();
+                    addVideoTrack(mVideoMediaFormat);
+                    addAudioTrack(mAudioMediaFormat);
+                }
+                if (isStartMediaMuxer.get()) {
+                    long systemTime = SystemClock.uptimeMillis();
+                    try {
+                        if (mBufferInfo.presentationTimeUs > lasttime) {
+                            FlyLog.d("xxxx time=" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
+                            mediaMuxer.writeSampleData(indexTrack, outputBuffer, mBufferInfo);
+                            lasttime = mBufferInfo.presentationTimeUs;
+                        } else {
+                            FlyLog.e("xxxx time=" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        FlyLog.e("xxxx time=xx" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
+                    }
+                }
             }
-            mediaMuxer.writeSampleData(indexTrack, outputBuffer, mBufferInfo);
         }
 
     }
@@ -165,6 +191,7 @@ public class SaveFileTask {
         isAddVideoTrack.set(false);
         isAddAudioTrack.set(!isRecordAudio);
         isStartMediaMuxer.set(false);
+        tHandler.removeCallbacksAndMessages(null);
         if (mediaMuxer != null) {
             mediaMuxer.stop();
             mediaMuxer.release();

@@ -26,14 +26,13 @@ import static android.content.ContentValues.TAG;
  **/
 public class AudioStream {
     private static final long WAIT_TIME = 5000;//1ms;
-    private boolean shouldQuit = false;
+    private AtomicBoolean isQuit = new AtomicBoolean(false);
     private AudioRecord mAudioRecord;
     private int recordBufSize = 0; // 声明recoordBufffer的大小字段
     private byte[] audioBuffer;
-    private AtomicBoolean isRunning = new AtomicBoolean(false);
     private MediaCodec mAudioEncoder;
     private MediaFormat dstAudioFormat;
-    private MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+    private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
 
     private static final HandlerThread sWorkerThread = new HandlerThread("encode-audio");
 
@@ -63,7 +62,8 @@ public class AudioStream {
     private Runnable runPutTask = new Runnable() {
         @Override
         public void run() {
-            while (isRunning.get()) {
+            FlyLog.d("record audio task start!");
+            while (!isQuit.get()) {
                 int size = mAudioRecord.read(audioBuffer, 0, audioBuffer.length);
                 if (size > 0) {
                     long nowTimeMs = SystemClock.uptimeMillis();
@@ -79,51 +79,56 @@ public class AudioStream {
                     FlyLog.d("AudioFilterHandler,ProcessTime:" + (System.currentTimeMillis() - nowTimeMs));
                 }
             }
+            mAudioRecord.stop();
+            mAudioRecord.release();
+            mAudioRecord = null;
+            mAudioEncoder.stop();
+            mAudioEncoder.release();
+            mAudioEncoder = null;
+            FlyLog.d("record audio task end!");
         }
     };
 
     private Runnable runSendTask = new Runnable() {
         @Override
         public void run() {
-            while (isRunning.get()) {
+            FlyLog.d("send audio task start!");
+            while (!isQuit.get()) {
                 RtmpSendTask.getInstance().open(RtmpSendTask.RTMP_ADDR);
-                int eobIndex = mAudioEncoder.dequeueOutputBuffer(bufferInfo, WAIT_TIME);
+                int eobIndex = mAudioEncoder.dequeueOutputBuffer(mBufferInfo, WAIT_TIME);
                 switch (eobIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
                         Log.d(TAG, "AudioSenderThread,MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED");
                         break;
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
-//                        LogTools.d("AudioSenderThread,MediaCodec.INFO_TRY_AGAIN_LATER");
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                         RtmpSendTask.getInstance().sendAudioSPS(mAudioEncoder.getOutputFormat());
+                        SaveFileTask.getInstance().open(SaveFileTask.OPEN_AUDIO, mAudioEncoder.getOutputFormat());
                         break;
                     default:
                         Log.d(TAG, "AudioSenderThread,MediaCode,eobIndex=" + eobIndex);
                         if (startTime == 0) {
-                            startTime = (int) (bufferInfo.presentationTimeUs / 1000);
+                            startTime = (int) (mBufferInfo.presentationTimeUs / 1000);
                         }
-                        /**
-                         * we send audio SpecificConfig already in INFO_OUTPUT_FORMAT_CHANGED
-                         * so we ignore MediaCodec.BUFFER_FLAG_CODEC_CONFIG
-                         */
-                        if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && bufferInfo.size != 0) {
-                            ByteBuffer realData = mAudioEncoder.getOutputBuffers()[eobIndex];
-                            realData.position(bufferInfo.offset);
-                            realData.limit(bufferInfo.offset + bufferInfo.size);
-                            RtmpSendTask.getInstance().sendAudioFrame(realData, (int) (bufferInfo.presentationTimeUs / 1000));
-//                            sendRealData((eInfo.presentationTimeUs / 1000) - startTime, realData);
+                        if (mBufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && mBufferInfo.size != 0) {
+                            ByteBuffer outputBuffer = mAudioEncoder.getOutputBuffers()[eobIndex];
+                            outputBuffer.position(mBufferInfo.offset);
+                            outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
+                            SaveFileTask.getInstance().writeAudioTrack(outputBuffer, mBufferInfo);
+                            RtmpSendTask.getInstance().sendAudioFrame(outputBuffer, (int) (mBufferInfo.presentationTimeUs / 1000));
                         }
                         mAudioEncoder.releaseOutputBuffer(eobIndex, false);
                         break;
                 }
             }
-            bufferInfo = null;
+            FlyLog.d("send audio task end!");
         }
     };
 
 
     public void start() {
+        isQuit.set(false);
         initAudioEncoder();
         initAudioRecord();
         tHandler.post(runPutTask);
@@ -131,19 +136,12 @@ public class AudioStream {
     }
 
     private void initAudioRecord() {
-        recordBufSize = AudioRecord.getMinBufferSize(
-                44100,
-                AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-        audioBuffer = new byte[recordBufSize];
-        mAudioRecord = new AudioRecord(
-                MediaRecorder.AudioSource.MIC,
-                44100,
-                AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                recordBufSize);
-        mAudioRecord.startRecording();
-        isRunning.set(true);
+        if (mAudioRecord == null) {
+            recordBufSize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            audioBuffer = new byte[recordBufSize];
+            mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufSize);
+            mAudioRecord.startRecording();
+        }
     }
 
     private void initAudioEncoder() {
@@ -167,9 +165,7 @@ public class AudioStream {
 
 
     public void stop() {
-        mAudioRecord.stop();
-        mAudioEncoder.stop();
-        shouldQuit = true;
+        isQuit.set(true);
         tHandler.removeCallbacksAndMessages(null);
         sHandler.removeCallbacksAndMessages(null);
     }

@@ -40,9 +40,8 @@ public class VideoStream {
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
     private long startTime = 0;
-    private boolean isRecord = true;
 
-    private static final HandlerThread sWorkerThread = new HandlerThread("screen-video");
+    private static final HandlerThread sWorkerThread = new HandlerThread("send-video");
 
     static {
         sWorkerThread.start();
@@ -64,6 +63,7 @@ public class VideoStream {
 
     public void start(MediaProjection mediaProjection) {
         isStop.set(false);
+        AudioStream.getInstance().start();
         mMediaProjection = mediaProjection;
         initMediaCodec();
         createVirtualDisplay();
@@ -97,6 +97,7 @@ public class VideoStream {
     }
 
     public void stop() {
+        AudioStream.getInstance().stop();
         tHandler.removeCallbacksAndMessages(null);
         isStop.set(true);
     }
@@ -122,12 +123,8 @@ public class VideoStream {
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                        if (!isStop.get()) {
-                            RtmpSendTask.getInstance().sendVideoSPS(mediaCodec.getOutputFormat());
-                            if (isRecord) {
-                                SaveFileTask.getInstance().open(SaveFileTask.OPEN_VIDEO, mediaCodec.getOutputFormat());
-                            }
-                        }
+                        RtmpSendTask.getInstance().sendVideoSPS(mediaCodec.getOutputFormat());
+                        SaveFileTask.getInstance().open(SaveFileTask.OPEN_VIDEO, mediaCodec.getOutputFormat());
                         break;
                     default:
                         if (startTime == 0) {
@@ -138,14 +135,8 @@ public class VideoStream {
                             ByteBuffer outputBuffer = outputBuffers[eobIndex];
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
-
-                            if (!isStop.get()) {
-                                RtmpSendTask.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
-                                //保存文件
-                                if (isRecord) {
-                                    SaveFileTask.getInstance().writeVideoTrack(outputBuffer, mBufferInfo);
-                                }
-                            }
+                            SaveFileTask.getInstance().writeVideoTrack(outputBuffer, mBufferInfo);
+                            RtmpSendTask.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
                         }
                         mediaCodec.releaseOutputBuffer(eobIndex, false);
                         break;
