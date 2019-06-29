@@ -135,8 +135,8 @@ public class VideoStream {
                             ByteBuffer outputBuffer = outputBuffers[eobIndex];
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
-                            SaveFileTask.getInstance().writeVideoTrack(outputBuffer, mBufferInfo);
                             RtmpSendTask.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+                            SaveFileTask.getInstance().writeVideoTrack(outputBuffer, mBufferInfo);
                         }
                         mediaCodec.releaseOutputBuffer(eobIndex, false);
                         break;

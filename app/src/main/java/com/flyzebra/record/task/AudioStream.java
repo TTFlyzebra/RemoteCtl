@@ -115,8 +115,10 @@ public class AudioStream {
                             ByteBuffer outputBuffer = mAudioEncoder.getOutputBuffers()[eobIndex];
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
-                            SaveFileTask.getInstance().writeAudioTrack(outputBuffer, mBufferInfo);
                             RtmpSendTask.getInstance().sendAudioFrame(outputBuffer, (int) (mBufferInfo.presentationTimeUs / 1000));
+                            mBufferInfo.presentationTimeUs = getPTSUs();
+                            SaveFileTask.getInstance().writeAudioTrack(outputBuffer, mBufferInfo);
+                            prevOutputPTSUs = mBufferInfo.presentationTimeUs;
                         }
                         mAudioEncoder.releaseOutputBuffer(eobIndex, false);
                         break;
@@ -125,6 +127,14 @@ public class AudioStream {
             FlyLog.d("send audio task end!");
         }
     };
+
+    private long prevOutputPTSUs;
+    private long getPTSUs() {
+        long result = System.nanoTime()/1000L;
+        if (result < prevOutputPTSUs)
+            result = (prevOutputPTSUs - result) + result;
+        return result;
+    }
 
 
     public void start() {

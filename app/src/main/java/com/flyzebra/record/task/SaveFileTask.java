@@ -5,7 +5,6 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.SystemClock;
 
 import com.flyzebra.record.bean.RtmpData;
@@ -34,7 +33,7 @@ public class SaveFileTask {
     private AtomicBoolean isStartMediaMuxer = new AtomicBoolean(false);
     private AtomicBoolean isAddVideoTrack = new AtomicBoolean(false);
     private AtomicBoolean isAddAudioTrack = new AtomicBoolean(false);
-    private boolean isRecordAudio = false;
+    private boolean isRecordAudio = true;
     private int videoTrack;
     private int audioTrack;
     private MediaFormat mVideoMediaFormat;
@@ -50,7 +49,6 @@ public class SaveFileTask {
     }
 
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
-    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     private final Object synObj = new Object();
 
@@ -170,13 +168,13 @@ public class SaveFileTask {
                 if (isStartMediaMuxer.get()) {
                     long systemTime = SystemClock.uptimeMillis();
                     try {
-                        if (mBufferInfo.presentationTimeUs > lasttime) {
+//                        if (mBufferInfo.presentationTimeUs > lasttime) {
                             FlyLog.d("xxxx time=" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
                             mediaMuxer.writeSampleData(indexTrack, outputBuffer, mBufferInfo);
                             lasttime = mBufferInfo.presentationTimeUs;
-                        } else {
-                            FlyLog.e("xxxx time=" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
-                        }
+//                        } else {
+//                            FlyLog.e("xxxx time=" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
+//                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         FlyLog.e("xxxx time=xx" + mBufferInfo.presentationTimeUs + ",index=%d,systemTime="+systemTime, indexTrack);
