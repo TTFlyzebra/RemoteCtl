@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -38,7 +39,11 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
-        verifyPermissions();
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            verifyPermissions();
+        } else {
+            isPermission = true;
+        }
 
     }
 
@@ -112,6 +117,6 @@ public class MainActivity extends Activity {
     }
 
     public void playRecord(View view) {
-        startActivity(new Intent(this,PlayActivity.class));
+        startActivity(new Intent(this, PlayActivity.class));
     }
 }

@@ -40,7 +40,7 @@ public class RtmpSendTask {
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
-    public static final String RTMP_ADDR = "rtmp://192.168.1.87/live/test";
+    public static final String RTMP_ADDR = "rtmp://192.168.1.88/live/test";
 
     public static RtmpSendTask getInstance() {
         return RtmpSendTask.RtmpSendTaskHolder.sInstance;
