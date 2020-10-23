@@ -10,12 +10,9 @@ import com.flyzebra.record.flvutils.FLvMetaData;
 import com.flyzebra.record.flvutils.Packager;
 import com.flyzebra.record.flvutils.RESCoreParameters;
 import com.flyzebra.record.flvutils.RESFlvData;
-import com.flyzebra.record.utils.ByteUtil;
-import com.flyzebra.record.utils.FlyLog;
 import com.flyzebra.rtmp.RtmpClient;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.flyzebra.record.flvutils.RESFlvData.FLV_RTMP_PACKET_TYPE_AUDIO;
@@ -28,9 +25,6 @@ import static com.flyzebra.record.flvutils.RESFlvData.FLV_RTMP_PACKET_TYPE_VIDEO
  * Describ:
  **/
 public class RtmpSendTask {
-    private static final int MAX_QUEUE_CAPACITY = 50;
-    private static final int MAX_QUEUE_LIST = 25;
-    private LinkedBlockingDeque<RtmpData> frameQueue = new LinkedBlockingDeque<>(MAX_QUEUE_CAPACITY);
     private static final HandlerThread sWorkerThread = new HandlerThread("sendVideoFrame-rtmp");
 
     static {
@@ -40,7 +34,7 @@ public class RtmpSendTask {
     private static final Handler tHandler = new Handler(sWorkerThread.getLooper());
 
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
-    public static final String RTMP_ADDR = "rtmp://192.168.1.88/live/test";
+    public static final String RTMP_ADDR = "rtmp://192.168.8.244/live/screen";
 
     public static RtmpSendTask getInstance() {
         return RtmpSendTask.RtmpSendTaskHolder.sInstance;
@@ -51,19 +45,6 @@ public class RtmpSendTask {
         public static final RtmpSendTask sInstance = new RtmpSendTask();
     }
 
-    public Runnable runTask = new Runnable() {
-        @Override
-        public void run() {
-            while (jniRtmpPointer.get() != -1) {
-                if (frameQueue.size() > 0) {
-                    RtmpData rtmpData = frameQueue.pop();
-                    RtmpClient.write(jniRtmpPointer.get(), rtmpData.buffer, rtmpData.buffer.length, rtmpData.type, rtmpData.ts);
-                    FlyLog.d("size=%d,send: %s", frameQueue.size(), ByteUtil.bytes2String(rtmpData.buffer, 10));
-                }
-            }
-        }
-    };
-
 
     public void open(final String url) {
         if (jniRtmpPointer.get() == -1) {
@@ -71,9 +52,9 @@ public class RtmpSendTask {
             RESCoreParameters coreParameters = new RESCoreParameters();
             coreParameters.mediacodecAACBitRate = RESFlvData.AAC_BITRATE;
             coreParameters.mediacodecAACSampleRate = RESFlvData.AAC_SAMPLE_RATE;
-            coreParameters.mediacodecAVCFrameRate = RESFlvData.FPS;
             coreParameters.videoWidth = RESFlvData.VIDEO_WIDTH;
             coreParameters.videoHeight = RESFlvData.VIDEO_HEIGHT;
+            coreParameters.mediacodecAVCFrameRate = RESFlvData.VIDEO_FPS;
 
             FLvMetaData fLvMetaData = new FLvMetaData(coreParameters);
             byte[] metaData = fLvMetaData.getMetaData();
@@ -81,8 +62,7 @@ public class RtmpSendTask {
             rtmpData.buffer = metaData;
             rtmpData.type = FLV_RTMP_PACKET_TYPE_INFO;
             rtmpData.ts = 0;
-            frameQueue.add(rtmpData);
-            tHandler.post(runTask);
+            write(rtmpData);
         }
 
     }
@@ -99,11 +79,12 @@ public class RtmpSendTask {
         rtmpData.type = FLV_RTMP_PACKET_TYPE_AUDIO;
         rtmpData.ts = 0;
         rtmpData.droppable = false;
-        pushData(rtmpData);
+        write(rtmpData);
     }
 
-    public void sendVideoSPS(MediaFormat format) {
-        byte[] AVCDecoderConfigurationRecord = Packager.H264Packager.generateAVCDecoderConfigurationRecord(format);
+    public void sendVideoSPS(MediaFormat mediaFormat) {
+        if (jniRtmpPointer.get() == -1) return;
+        byte[] AVCDecoderConfigurationRecord = Packager.H264Packager.generateAVCDecoderConfigurationRecord(mediaFormat);
         int packetLen = Packager.FLVPackager.FLV_VIDEO_TAG_LENGTH + AVCDecoderConfigurationRecord.length;
         final byte[] sendBytes = new byte[packetLen];
         Packager.FLVPackager.fillFlvVideoTag(sendBytes, 0, true, true, AVCDecoderConfigurationRecord.length);
@@ -112,14 +93,14 @@ public class RtmpSendTask {
         rtmpData.buffer = sendBytes;
         rtmpData.type = FLV_RTMP_PACKET_TYPE_VIDEO;
         rtmpData.ts = 0;
-        pushData(rtmpData);
+        write(rtmpData);
     }
 
     public void sendVideoFrame(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo, final int ts) {
         if (jniRtmpPointer.get() == -1) return;
         //获取帧类型
         outputBuffer.mark();
-        Byte type = outputBuffer.get(4);
+        byte type = outputBuffer.get(4);
         int frameType = type & 0x1F;
         outputBuffer.reset();
 
@@ -136,7 +117,7 @@ public class RtmpSendTask {
         rtmpData.buffer = sendBytes;
         rtmpData.type = FLV_RTMP_PACKET_TYPE_VIDEO;
         rtmpData.ts = ts;
-        pushData(rtmpData);
+        write(rtmpData);
     }
 
     public void sendAudioFrame(ByteBuffer realData, final int ts) {
@@ -151,25 +132,21 @@ public class RtmpSendTask {
         rtmpData.type = FLV_RTMP_PACKET_TYPE_AUDIO;
         rtmpData.ts = ts;
         rtmpData.droppable = true;
-        pushData(rtmpData);
+        write(rtmpData);
     }
 
 
-    private void pushData(RtmpData rtmpData) {
-        if (frameQueue != null) {
-            if (frameQueue.size() > MAX_QUEUE_LIST) {
-                frameQueue.clear();
-            }
-            frameQueue.add(rtmpData);
-        }
+    synchronized private void write(RtmpData rtmpData) {
+        if (jniRtmpPointer.get() == -1) return;
+        RtmpClient.write(jniRtmpPointer.get(), rtmpData.buffer, rtmpData.buffer.length, rtmpData.type, rtmpData.ts);
+        //FlyLog.d("send: %s",ByteUtil.bytes2String(rtmpData.buffer, 16));
     }
 
 
     public void close() {
-        final long rtmp = jniRtmpPointer.get();
+        RtmpClient.close(jniRtmpPointer.get());
         jniRtmpPointer.set(-1);
         tHandler.removeCallbacksAndMessages(null);
-        RtmpClient.close(rtmp);
     }
 
 }

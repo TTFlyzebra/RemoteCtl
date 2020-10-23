@@ -7,17 +7,18 @@ package com.flyzebra.record.flvutils;
 public class RESFlvData {
 
     // video size
-    public static final int VIDEO_WIDTH = 1024;
-    public static final int VIDEO_HEIGHT = 600;
+    public static final int VIDEO_WIDTH = 360;
+    public static final int VIDEO_HEIGHT = 640;
     public static final int VIDEO_BITRATE = 1000000; // 500Kbps
-    public static final int FPS = 25;
+    public static final int VIDEO_IFRAME_INTERVAL = 1; // 2 seconds between I-frames
+    public static final int VIDEO_FPS = 24;
     public static final int AAC_SAMPLE_RATE = 44100;
     public static final int AAC_BITRATE = 32 * 1024;
 
     public static final int FLV_RTMP_PACKET_TYPE_VIDEO = 9;
     public static final int FLV_RTMP_PACKET_TYPE_AUDIO = 8;
     public static final int FLV_RTMP_PACKET_TYPE_INFO = 18;
-    public static final int NALU_TYPE_IDR = 5;
+    public static final int NALU_TYPE_IDR = 25;
 
     public boolean droppable;
 
@@ -30,9 +31,5 @@ public class RESFlvData {
     public int flvTagType; //视频和音频的分类
 
     public int videoFrameType;
-
-    public boolean isKeyframe() {
-        return videoFrameType == NALU_TYPE_IDR;
-    }
 
 }

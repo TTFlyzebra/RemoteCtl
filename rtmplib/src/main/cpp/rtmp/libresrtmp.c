@@ -80,7 +80,7 @@
  */
  JNIEXPORT jint JNICALL Java_com_flyzebra_rtmp_RtmpClient_write
  (JNIEnv * env, jobject thiz,jlong rtmp, jbyteArray data, jint size, jint type, jint ts) {
- 	LOGD("start write");
+ 	//LOGD("start write");
  	jbyte *buffer = (*env)->GetByteArrayElements(env, data, NULL);
  	RTMPPacket *packet = (RTMPPacket*)malloc(sizeof(RTMPPacket));
  	RTMPPacket_Alloc(packet, size);
@@ -97,7 +97,7 @@
 
     packet->m_nInfoField2  =  ((RTMP*)rtmp)->m_stream_id;
 
-    LOGD("write data type: %d, ts %d", type, ts);
+    //LOGD("write data type: %d, ts %d", type, ts);
 
     memcpy(packet->m_body,  buffer,  size);
     packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
@@ -114,7 +114,7 @@
 		return sockerr;
     }else
     {
-    	LOGD("end write success");
+    	//LOGD("end write success");
 		return 0;
     }
 }
