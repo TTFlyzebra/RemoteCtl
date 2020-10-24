@@ -2,8 +2,6 @@ package com.flyzebra.record.model;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.os.Handler;
-import android.os.HandlerThread;
 
 import com.flyzebra.record.utils.ByteArrayTools;
 import com.flyzebra.rtmp.RtmpClient;
