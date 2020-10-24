@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.flyzebra.record.model.FileSaveTask;
 import com.flyzebra.record.model.FlvRtmpClient;
 import com.flyzebra.record.utils.FlyLog;
 
@@ -105,7 +106,7 @@ public class AudioStream {
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                         FlvRtmpClient.getInstance().sendAudioSPS(mAudioEncoder.getOutputFormat());
-                        SaveFileTask.getInstance().open(SaveFileTask.OPEN_AUDIO, mAudioEncoder.getOutputFormat());
+                        FileSaveTask.getInstance().open(FileSaveTask.OPEN_AUDIO, mAudioEncoder.getOutputFormat());
                         break;
                     default:
                         Log.d(TAG, "AudioSenderThread,MediaCode,eobIndex=" + eobIndex);
@@ -118,7 +119,7 @@ public class AudioStream {
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
                             FlvRtmpClient.getInstance().sendAudioFrame(outputBuffer, (int) (mBufferInfo.presentationTimeUs / 1000));
                             mBufferInfo.presentationTimeUs = getPTSUs();
-                            SaveFileTask.getInstance().writeAudioTrack(outputBuffer, mBufferInfo);
+                            FileSaveTask.getInstance().writeAudioTrack(outputBuffer, mBufferInfo);
                             prevOutputPTSUs = mBufferInfo.presentationTimeUs;
                         }
                         mAudioEncoder.releaseOutputBuffer(eobIndex, false);

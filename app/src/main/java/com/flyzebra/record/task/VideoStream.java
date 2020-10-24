@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
+import com.flyzebra.record.model.FileSaveTask;
 import com.flyzebra.record.model.FlvRtmpClient;
 import com.flyzebra.record.utils.FlyLog;
 
@@ -68,6 +69,7 @@ public class VideoStream implements Runnable{
                 case MediaCodec.INFO_TRY_AGAIN_LATER:
                     break;
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+                    FileSaveTask.getInstance().open(FileSaveTask.OPEN_VIDEO, mediaCodec.getOutputFormat());
                     FlvRtmpClient.getInstance().sendVideoSPS(mediaCodec.getOutputFormat());
                     break;
                 default:
@@ -79,6 +81,7 @@ public class VideoStream implements Runnable{
                         outputBuffer.position(mBufferInfo.offset);
                         outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
                         FlvRtmpClient.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+                        FileSaveTask.getInstance().writeVideoTrack(outputBuffer,mBufferInfo);
                     }
                     mediaCodec.releaseOutputBuffer(eobIndex, false);
                     break;
