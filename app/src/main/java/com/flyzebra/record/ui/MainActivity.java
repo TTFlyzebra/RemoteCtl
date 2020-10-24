@@ -13,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
 import com.flyzebra.record.R;
+import com.flyzebra.record.service.ControllerService;
 import com.flyzebra.record.service.RecordService;
 import com.flyzebra.record.task.VideoStream;
 
@@ -108,6 +109,7 @@ public class MainActivity extends Activity {
     private void startRecord(MediaProjectionManager mMediaProjectionManager, int resultCode, Intent data) {
         moveTaskToBack(true);
         startService(new Intent(this, RecordService.class));
+        startService(new Intent(this, ControllerService.class));
         VideoStream.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
     }
 
