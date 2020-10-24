@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.flyzebra.record.model.FlvRtmpClient;
 import com.flyzebra.record.utils.FlyLog;
 
 import java.io.IOException;
@@ -94,7 +95,7 @@ public class AudioStream {
         public void run() {
             FlyLog.d("send audio task start!");
             while (!isQuit.get()) {
-                RtmpSendTask.getInstance().open(RtmpSendTask.RTMP_ADDR);
+                FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
                 int eobIndex = mAudioEncoder.dequeueOutputBuffer(mBufferInfo, WAIT_TIME);
                 switch (eobIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
@@ -103,7 +104,7 @@ public class AudioStream {
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                        RtmpSendTask.getInstance().sendAudioSPS(mAudioEncoder.getOutputFormat());
+                        FlvRtmpClient.getInstance().sendAudioSPS(mAudioEncoder.getOutputFormat());
                         SaveFileTask.getInstance().open(SaveFileTask.OPEN_AUDIO, mAudioEncoder.getOutputFormat());
                         break;
                     default:
@@ -115,7 +116,7 @@ public class AudioStream {
                             ByteBuffer outputBuffer = mAudioEncoder.getOutputBuffers()[eobIndex];
                             outputBuffer.position(mBufferInfo.offset);
                             outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
-                            RtmpSendTask.getInstance().sendAudioFrame(outputBuffer, (int) (mBufferInfo.presentationTimeUs / 1000));
+                            FlvRtmpClient.getInstance().sendAudioFrame(outputBuffer, (int) (mBufferInfo.presentationTimeUs / 1000));
                             mBufferInfo.presentationTimeUs = getPTSUs();
                             SaveFileTask.getInstance().writeAudioTrack(outputBuffer, mBufferInfo);
                             prevOutputPTSUs = mBufferInfo.presentationTimeUs;

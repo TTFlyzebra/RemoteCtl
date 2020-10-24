@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
 
-import com.flyzebra.record.bean.RtmpData;
 import com.flyzebra.record.utils.FlyLog;
 import com.flyzebra.record.utils.TimeUtil;
 
@@ -39,8 +38,6 @@ public class SaveFileTask {
     private MediaFormat mVideoMediaFormat;
     private MediaFormat mAudioMediaFormat;
     private long lastRecordTime = 0;
-    private static final int MAX_QUEUE_CAPACITY = 100;
-    private LinkedBlockingDeque<RtmpData> fileQuque = new LinkedBlockingDeque<>(MAX_QUEUE_CAPACITY);
 
     private static final HandlerThread sWorkerThread = new HandlerThread("save-file");
 
@@ -60,22 +57,6 @@ public class SaveFileTask {
         public static final SaveFileTask sInstance = new SaveFileTask();
     }
 
-    public Runnable runTask = new Runnable() {
-        @Override
-        public void run() {
-            while (isStartMediaMuxer.get()) {
-                if (fileQuque.size() > 0) {
-
-                }
-            }
-            fileQuque.clear();
-        }
-    };
-
-
-    /**
-     * 创建文件
-     */
     private void initMediaMuxer() {
         try {
             lastRecordTime = System.currentTimeMillis() / ONE_RECORD_TIME;
@@ -134,7 +115,6 @@ public class SaveFileTask {
             FlyLog.d("MediaMuxer start");
             mediaMuxer.start();
             isStartMediaMuxer.set(true);
-            tHandler.post(runTask);
         }
     }
 

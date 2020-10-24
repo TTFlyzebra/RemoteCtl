@@ -1,4 +1,4 @@
-package com.flyzebra.record.flvutils;
+package com.flyzebra.record.model;
 
 
 import java.util.ArrayList;
@@ -21,59 +21,25 @@ public class FLvMetaData {
     private int pointer;
     private byte[] MetaDataFrame;
 
-    public FLvMetaData() {
+    public FLvMetaData(int a_datarate, int a_samplerate,int v_width, int v_height, int v_fps) {
         MetaData = new ArrayList<>();
         DataSize = 0;
+        addProperty(toFlvString("audiocodecid"), (byte) 0, toFlvNum(10));
+        addProperty(toFlvString("audiodatarate"), (byte) 0, toFlvNum(a_datarate/1024));
+        addProperty(toFlvString("audiosamplerate"), (byte) 0, toFlvNum(a_samplerate));
+        addProperty(toFlvString("videocodecid"), (byte) 0, toFlvNum(7));
+        addProperty(toFlvString("VIDEO_WIDTH"), (byte) 0, toFlvNum(v_width));
+        addProperty(toFlvString("VIDEO_HEIGHT"), (byte) 0, toFlvNum(v_height));
+        addProperty(toFlvString("framerate"), (byte) 0, toFlvNum(v_fps));
     }
 
-    public FLvMetaData(RESCoreParameters coreParameters) {
-        this();
-        //Audio
-        //AAC
-        setProperty("audiocodecid", 10);
-        switch (coreParameters.mediacodecAACBitRate) {
-            case 32 * 1024:
-                setProperty("audiodatarate", 32);
-                break;
-            case 48 * 1024:
-                setProperty("audiodatarate", 48);
-                break;
-            case 64 * 1024:
-                setProperty("audiodatarate", 64);
-                break;
-        }
-
-        switch (coreParameters.mediacodecAACSampleRate) {
-            case 44100:
-                setProperty("audiosamplerate", 44100);
-                break;
-            default:
-                break;
-        }
-        //Video
-        //h264
-        setProperty("videocodecid", 7);
-        setProperty("framerate", coreParameters.mediacodecAVCFrameRate);
-        setProperty("VIDEO_WIDTH", coreParameters.videoWidth);
-        setProperty("VIDEO_HEIGHT", coreParameters.videoHeight);
-    }
-
-    public void setProperty(String Key, int value) {
-        addProperty(toFlvString(Key), (byte) 0, toFlvNum(value));
-    }
-
-    public void setProperty(String Key, String value) {
-        addProperty(toFlvString(Key), (byte) 2, toFlvString(value));
-    }
 
     private void addProperty(byte[] Key, byte datatype, byte[] data) {
         int Propertysize = Key.length + 1 + data.length;
         byte[] Property = new byte[Propertysize];
-
         System.arraycopy(Key, 0, Property, 0, Key.length);
         Property[Key.length] = datatype;
         System.arraycopy(data, 0, Property, Key.length + 1, data.length);
-
         MetaData.add(Property);
         DataSize += Propertysize;
     }

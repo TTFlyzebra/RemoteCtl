@@ -10,7 +10,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
-import com.flyzebra.record.flvutils.RESFlvData;
+import com.flyzebra.record.model.FlvRtmpClient;
 import com.flyzebra.record.utils.FlyLog;
 
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class VideoStream implements Runnable{
                 case MediaCodec.INFO_TRY_AGAIN_LATER:
                     break;
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                    RtmpSendTask.getInstance().sendVideoSPS(mediaCodec.getOutputFormat());
+                    FlvRtmpClient.getInstance().sendVideoSPS(mediaCodec.getOutputFormat());
                     break;
                 default:
                     if (startTime == 0) {
@@ -78,7 +78,7 @@ public class VideoStream implements Runnable{
                         ByteBuffer outputBuffer = mediaCodec.getOutputBuffer(eobIndex);
                         outputBuffer.position(mBufferInfo.offset);
                         outputBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
-                        RtmpSendTask.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
+                        FlvRtmpClient.getInstance().sendVideoFrame(outputBuffer, mBufferInfo, (int) ((mBufferInfo.presentationTimeUs / 1000) - startTime));
                     }
                     mediaCodec.releaseOutputBuffer(eobIndex, false);
                     break;
@@ -103,7 +103,7 @@ public class VideoStream implements Runnable{
     }
 
     public void start(MediaProjection mediaProjection) {
-        RtmpSendTask.getInstance().open(RtmpSendTask.RTMP_ADDR);
+        FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
         isStop.set(false);
         mMediaProjection = mediaProjection;
         initMediaCodec();
@@ -113,11 +113,11 @@ public class VideoStream implements Runnable{
 
     private void initMediaCodec() {
         try {
-            MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, RESFlvData.VIDEO_WIDTH, RESFlvData.VIDEO_HEIGHT);
+            MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, FlvRtmpClient.VIDEO_WIDTH, FlvRtmpClient.VIDEO_HEIGHT);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-            format.setInteger(MediaFormat.KEY_BIT_RATE, RESFlvData.VIDEO_BITRATE);
-            format.setInteger(MediaFormat.KEY_FRAME_RATE, RESFlvData.VIDEO_FPS);
-            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, RESFlvData.VIDEO_IFRAME_INTERVAL);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, FlvRtmpClient.VIDEO_BITRATE);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, FlvRtmpClient.VIDEO_FPS);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, FlvRtmpClient.VIDEO_IFRAME_INTERVAL);
             FlyLog.d("created video format: " + format.toString());
             //format.setFloat("max-fps-to-encoder", 24);
             mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
@@ -132,14 +132,14 @@ public class VideoStream implements Runnable{
 
     private void createVirtualDisplay() {
         if (mVirtualDisplay == null) {
-            mVirtualDisplay = mMediaProjection.createVirtualDisplay("SCREEN", RESFlvData.VIDEO_WIDTH, RESFlvData.VIDEO_HEIGHT, 1,
+            mVirtualDisplay = mMediaProjection.createVirtualDisplay("SCREEN", FlvRtmpClient.VIDEO_WIDTH, FlvRtmpClient.VIDEO_HEIGHT, 1,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mSurface, null, null);
         }
     }
 
     public void stop() {
         tHandler.removeCallbacksAndMessages(null);
-        RtmpSendTask.getInstance().close();
+        FlvRtmpClient.getInstance().close();
         isStop.set(true);
     }
 
