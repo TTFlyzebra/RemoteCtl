@@ -109,22 +109,21 @@ public final class Server {
         }).start();
     }
 
-    //app_process ./ com.genymobile.scrcpy.Server 1.12.1 0 8000000 0 true - true true
     private static Options createOptions(String... args) {
         if (args.length < 1) {
-            //throw new IllegalArgumentException("Missing client version");
+            throw new IllegalArgumentException("Missing client version");
         }
 
-        String clientVersion = "1.14";
-        //if (!clientVersion.equals(BuildConfig.VERSION_NAME)) {
-        //    throw new IllegalArgumentException(
-        //            "The server version (" + BuildConfig.VERSION_NAME + ") does not match the client " + "(" + clientVersion + ")");
-        //}
-//
-        //final int expectedParameters = 14;
-        //if (args.length != expectedParameters) {
-        //    throw new IllegalArgumentException("Expecting " + expectedParameters + " parameters");
-        //}
+        String clientVersion = args[0];
+//        if (!clientVersion.equals(BuildConfig.VERSION_NAME)) {
+//            throw new IllegalArgumentException(
+//                    "The server version (" + BuildConfig.VERSION_NAME + ") does not match the client " + "(" + clientVersion + ")");
+//        }
+
+        final int expectedParameters = 14;
+        if (args.length != expectedParameters) {
+            throw new IllegalArgumentException("Expecting " + expectedParameters + " parameters");
+        }
 
         Options options = new Options();
 
