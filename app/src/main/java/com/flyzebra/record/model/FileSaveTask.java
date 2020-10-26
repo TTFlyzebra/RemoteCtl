@@ -5,8 +5,8 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.SystemClock;
 
-import com.flyzebra.record.utils.FlyLog;
 import com.flyzebra.record.utils.TimeUtil;
+import com.flyzebra.util.FlyLog;
 
 import java.io.File;
 import java.io.IOException;

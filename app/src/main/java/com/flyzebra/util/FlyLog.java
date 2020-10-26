@@ -1,4 +1,4 @@
-package com.flyzebra.record.utils;
+package com.flyzebra.util;
 
 import android.util.Log;
 

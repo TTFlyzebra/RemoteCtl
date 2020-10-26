@@ -11,7 +11,7 @@ import android.os.HandlerThread;
 import android.view.Surface;
 
 import com.flyzebra.record.model.FlvRtmpClient;
-import com.flyzebra.record.utils.FlyLog;
+import com.flyzebra.util.FlyLog;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

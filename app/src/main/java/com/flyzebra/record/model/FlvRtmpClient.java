@@ -35,7 +35,7 @@ public class FlvRtmpClient {
 
     private static final Object lock = new Object();
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
-    public static final String RTMP_ADDR = "rtmp://192.168.8.244:1936/live/screen";
+    public static final String RTMP_ADDR = "rtmp://192.168.8.244/live/screen";
 
     public static FlvRtmpClient getInstance() {
         return FlvRtmpClient.RtmpSendTaskHolder.sInstance;

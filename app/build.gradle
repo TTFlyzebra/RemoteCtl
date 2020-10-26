@@ -1,25 +1,41 @@
 apply plugin: 'com.android.application'
 
+static def getCreateTime() {
+    def createTime = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("GMT+08:00")).trim()
+    return createTime
+}
+
+static def getGitSHA() {
+    def gitSHA = 'git rev-parse --short HEAD'.execute().text.trim()
+    return gitSHA
+}
+
+static def getGitCommitCount() {
+    def gitCommitCount = 'git rev-list --count HEAD'.execute().text.trim();
+    return gitCommitCount;
+}
+
 android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "com.flyzebra.record"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode gitCommitCount.toInteger()
+        versionName "v1.0."+gitSHA+"."+createTime
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     signingConfigs {
         release {
-            storeFile file("../platform8.0.keystore")
+            storeFile file("../keystore/vlte.keystore")
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
 
         debug {
-            storeFile file("../platform8.0.keystore")
+            storeFile file("../keystore/vlte.keystore")
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
@@ -40,12 +56,24 @@ android {
         }
     }
 
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def fileName
+            if (variant.buildType.name.equals('release')) {
+                fileName = "${applicationId}_release_${versionName}_${gitCommitCount}.apk"
+            } else if (variant.buildType.name.equals('debug')) {
+                fileName = "${applicationId}_debug_${versionName}_${gitCommitCount}.apk"
+            }
+            outputFileName = fileName;
+        }
+    }
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support.constraint:constraint-layout:2.0.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

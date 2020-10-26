@@ -13,7 +13,7 @@ import android.util.Log;
 
 import com.flyzebra.record.model.FileSaveTask;
 import com.flyzebra.record.model.FlvRtmpClient;
-import com.flyzebra.record.utils.FlyLog;
+import com.flyzebra.util.FlyLog;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

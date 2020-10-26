@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 
-import com.flyzebra.record.utils.FlyLog;
+import com.flyzebra.util.FlyLog;
 
 public class ControllerService extends Service {
     public static final String MAIN_ACTION_BROADCAST_EXIT = "MAIN_ACTION_BROADCAST_EXIT";

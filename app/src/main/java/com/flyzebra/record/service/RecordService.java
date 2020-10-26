@@ -16,7 +16,7 @@ import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.RemoteViews;
 
 import com.flyzebra.record.ui.MainActivity;
-import com.flyzebra.record.utils.FlyLog;
+import com.flyzebra.util.FlyLog;
 
 
 public class RecordService extends Service  {
