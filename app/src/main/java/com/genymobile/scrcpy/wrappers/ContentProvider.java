@@ -1,9 +1,9 @@
 package com.genymobile.scrcpy.wrappers;
 
-import com.genymobile.scrcpy.Ln;
-
 import android.os.Bundle;
 import android.os.IBinder;
+
+import com.genymobile.scrcpy.Ln;
 
 import java.io.Closeable;
 import java.lang.reflect.InvocationTargetException;

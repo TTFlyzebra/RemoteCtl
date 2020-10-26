@@ -1,13 +1,13 @@
 package com.genymobile.scrcpy;
 
-import com.genymobile.scrcpy.wrappers.SurfaceControl;
-
 import android.graphics.Rect;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.IBinder;
 import android.view.Surface;
+
+import com.genymobile.scrcpy.wrappers.SurfaceControl;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

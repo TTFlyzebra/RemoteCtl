@@ -1,12 +1,11 @@
 package com.genymobile.scrcpy;
 
-import com.flyzebra.scrcpy.BuildConfig;
-import com.genymobile.scrcpy.wrappers.ContentProvider;
-
 import android.graphics.Rect;
 import android.media.MediaCodec;
 import android.os.BatteryManager;
 import android.os.Build;
+
+import com.genymobile.scrcpy.wrappers.ContentProvider;
 
 import java.io.IOException;
 import java.util.List;

@@ -2,7 +2,6 @@ package com.genymobile.scrcpy;
 
 import android.graphics.Rect;
 
-import com.flyzebra.scrcpy.BuildConfig;
 
 public final class ScreenInfo {
     /**
@@ -115,9 +114,6 @@ public final class ScreenInfo {
         w &= ~7; // in case it's not a multiple of 8
         h &= ~7;
         if (maxSize > 0) {
-            if (BuildConfig.DEBUG && maxSize % 8 != 0) {
-                throw new AssertionError("Max size must be a multiple of 8");
-            }
             boolean portrait = h > w;
             int major = portrait ? h : w;
             int minor = portrait ? w : h;
