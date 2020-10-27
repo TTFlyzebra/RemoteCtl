@@ -52,23 +52,27 @@ public class LocalSocketClient implements ISocketTask {
         recvThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (!isStop.get()) {
-                    try {
+                try {
+                    while (!isStop.get()) {
                         int len = inputStream.read(recvBuffer);
+                        if (len <= 0) {
+                            FlyLog.e("recv len -1");
+                            break;
+                        }
                         FlyLog.d("recv data len=%d", len);
-                    } catch (Exception e) {
-                        FlyLog.e(e.toString());
                     }
+                } catch (Exception e) {
+                    FlyLog.e(e.toString());
                 }
             }
-        }, tag +"-recv");
+        }, tag + "-recv");
 
         sendThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int sendLen = 0;
-                while (!isStop.get()) {
-                    try {
+                try {
+                    while (!isStop.get()) {
                         synchronized (sendLock) {
                             if (sendByteBuffer.position() < 1) {
                                 sendLock.wait();
@@ -81,24 +85,24 @@ public class LocalSocketClient implements ISocketTask {
                         }
                         outputStream.write(sendBuffer, 0, sendLen);
                         FlyLog.d("send data len=%d", sendLen);
-                    } catch (Exception e) {
-                        FlyLog.e(e.toString());
                     }
+                } catch (Exception e) {
+                    FlyLog.e(e.toString());
                 }
             }
-        }, tag +"-send");
+        }, tag + "-send");
         recvThread.start();
         sendThread.start();
     }
 
     @Override
-    public void send(byte[] buffer,int offset, int lenght) {
-        synchronized (sendLock){
+    public void send(byte[] buffer, int offset, int lenght) {
+        synchronized (sendLock) {
             int position = sendByteBuffer.position();
             if (sendByteBuffer.remaining() < lenght) {
                 FlyLog.e("send buffer is full!");
-            }else {
-                sendByteBuffer.put(buffer,0, lenght);
+            } else {
+                sendByteBuffer.put(buffer, 0, lenght);
             }
             if (position < 1) {
                 sendLock.notify();
@@ -109,6 +113,8 @@ public class LocalSocketClient implements ISocketTask {
     @Override
     public void stop() {
         isStop.set(true);
-        sendLock.notifyAll();
+        synchronized (sendLock) {
+            sendLock.notify();
+        }
     }
 }

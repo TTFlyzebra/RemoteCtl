@@ -5,7 +5,6 @@ import android.media.MediaCodec;
 import android.os.Build;
 
 import com.flyzebra.util.FlyLog;
-import com.genymobile.scrcpy.CleanUp;
 import com.genymobile.scrcpy.CodecOption;
 import com.genymobile.scrcpy.Controller;
 import com.genymobile.scrcpy.DesktopConnection;
@@ -32,8 +31,8 @@ public final class ScrcpyServer {
         final Device device = new Device(options);
         List<CodecOption> codecOptions = CodecOption.parse(options.getCodecOptions());
 
-        boolean mustDisableShowTouchesOnCleanUp = false;
-        int restoreStayOn = -1;
+//        boolean mustDisableShowTouchesOnCleanUp = false;
+//        int restoreStayOn = -1;
 //        if (options.getShowTouches() || options.getStayAwake()) {
 //            try (ContentProvider settings = device.createSettingsProvider()) {
 //                if (options.getShowTouches()) {
@@ -58,7 +57,7 @@ public final class ScrcpyServer {
 //            }
 //        }
 
-        CleanUp.configure(mustDisableShowTouchesOnCleanUp, restoreStayOn, true);
+//        CleanUp.configure(mustDisableShowTouchesOnCleanUp, restoreStayOn, true);
 
         try {
             boolean tunnelForward = options.isTunnelForward();
@@ -140,7 +139,7 @@ public final class ScrcpyServer {
         Options options = new Options();
 
         Ln.Level level = Ln.Level.valueOf(args[1].toUpperCase(Locale.ENGLISH));
-        options.setLogLevel(level);
+        options.setLogLevel(Ln.Level.DEBUG);
 
         int maxSize = Integer.parseInt(args[2]) & ~7; // multiple of 8
         options.setMaxSize(maxSize);

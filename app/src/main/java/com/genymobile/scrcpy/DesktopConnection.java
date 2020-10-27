@@ -4,6 +4,8 @@ import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
+import com.flyzebra.util.FlyLog;
+
 import java.io.Closeable;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -76,6 +78,7 @@ public final class DesktopConnection implements Closeable {
     }
 
     public void close() throws IOException {
+        FlyLog.e("close all socket");
         videoSocket.shutdownInput();
         videoSocket.shutdownOutput();
         videoSocket.close();

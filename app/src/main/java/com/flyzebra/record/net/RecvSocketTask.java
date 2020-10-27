@@ -38,7 +38,6 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
         mControllerClient.start();
 
         Thread mThread = new Thread(this, "Contorller-recv");
-        mThread.setDaemon(true);
         mThread.start();
     }
 
@@ -98,8 +97,12 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
 
     public void stop() {
         isStop.set(true);
-        mVideoClient.stop();
-        mControllerClient.stop();
+        if(mVideoClient!=null){
+            mVideoClient.stop();
+        }
+        if(mControllerClient!=null){
+            mControllerClient.stop();
+        }
     }
 
     @Override
