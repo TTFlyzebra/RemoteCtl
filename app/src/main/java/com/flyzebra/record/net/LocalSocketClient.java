@@ -59,7 +59,7 @@ public class LocalSocketClient implements ISocketTask {
                             FlyLog.e("recv len -1");
                             break;
                         }
-                        FlyLog.d("recv data len=%d", len);
+//                        FlyLog.v("recv data len=%d", len);
                     }
                 } catch (Exception e) {
                     FlyLog.e(e.toString());

@@ -108,11 +108,11 @@ public class MainActivity extends Activity {
     private void startRecord(MediaProjectionManager mMediaProjectionManager, int resultCode, Intent data) {
         moveTaskToBack(true);
         startService(new Intent(this, MainService.class));
-        VideoStream.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
+//        VideoStream.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
     }
 
     public void stopRecord(View view) {
-        VideoStream.getInstance().stop();
+//        VideoStream.getInstance().stop();
         sendBroadcast(new Intent(MainService.MAIN_ACTION_BROADCAST_EXIT));
     }
 

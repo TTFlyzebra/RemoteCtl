@@ -7,7 +7,6 @@ import android.media.MediaFormat;
 import android.os.IBinder;
 import android.view.Surface;
 
-import com.flyzebra.record.model.FlvRtmpClient;
 import com.flyzebra.scrcpy.wrappers.SurfaceControl;
 
 import java.io.FileDescriptor;
@@ -16,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ScreenEncoder implements Device.RotationListener {
+public class ScreenEncoder_old implements Device.RotationListener {
 
     private static final int DEFAULT_I_FRAME_INTERVAL = 10; // seconds
     private static final int REPEAT_FRAME_DELAY_US = 100_000; // repeat after 100ms
@@ -33,9 +32,7 @@ public class ScreenEncoder implements Device.RotationListener {
     private boolean sendFrameMeta;
     private long ptsOrigin;
 
-    private long startTime = 0;
-
-    public ScreenEncoder(boolean sendFrameMeta, int bitRate, int maxFps, List<CodecOption> codecOptions) {
+    public ScreenEncoder_old(boolean sendFrameMeta, int bitRate, int maxFps, List<CodecOption> codecOptions) {
         this.sendFrameMeta = sendFrameMeta;
         this.bitRate = bitRate;
         this.maxFps = maxFps;
@@ -67,7 +64,6 @@ public class ScreenEncoder implements Device.RotationListener {
     }
 
     private void internalStreamScreen(Device device, FileDescriptor fd) throws IOException {
-        FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
         MediaFormat format = createFormat(bitRate, maxFps, codecOptions);
         device.setRotationListener(this);
         boolean alive;
@@ -110,24 +106,6 @@ public class ScreenEncoder implements Device.RotationListener {
 
         while (!consumeRotationChange() && !eof) {
             int outputBufferId = codec.dequeueOutputBuffer(bufferInfo, -1);
-
-            switch (outputBufferId) {
-                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                    FlvRtmpClient.getInstance().sendVideoSPS(codec.getOutputFormat());
-                    break;
-                default:
-                    if (startTime == 0) {
-                        startTime = bufferInfo.presentationTimeUs / 1000;
-                    }
-                    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG && bufferInfo.size != 0) {
-                        ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
-                        outputBuffer.position(bufferInfo.offset);
-                        outputBuffer.limit(bufferInfo.offset + bufferInfo.size);
-                        FlvRtmpClient.getInstance().sendVideoFrame(outputBuffer, bufferInfo, (int) ((bufferInfo.presentationTimeUs / 1000) - startTime));
-                    }
-                    break;
-            }
-
             eof = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0;
             try {
                 if (consumeRotationChange()) {
@@ -196,24 +174,19 @@ public class ScreenEncoder implements Device.RotationListener {
     private static MediaFormat createFormat(int bitRate, int maxFps, List<CodecOption> codecOptions) {
         MediaFormat format = new MediaFormat();
         format.setString(MediaFormat.KEY_MIME, MediaFormat.MIMETYPE_VIDEO_AVC);
-//        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-//        // must be present to configure the encoder, but does not impact the actual frame rate, which is variable
-//        format.setInteger(MediaFormat.KEY_FRAME_RATE, 24);
-//        format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-//        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL);
-//        // display the very first frame, and recover from bad quality when no new frames
-//        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_FRAME_DELAY_US); // µs
+        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
+        // must be present to configure the encoder, but does not impact the actual frame rate, which is variable
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, 60);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, FlvRtmpClient.VIDEO_BITRATE);
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, FlvRtmpClient.VIDEO_FPS);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, FlvRtmpClient.VIDEO_IFRAME_INTERVAL);
-
-//        if (maxFps > 0) {
-//            // The key existed privately before Android 10:
-//            // <https://android.googlesource.com/platform/frameworks/base/+/625f0aad9f7a259b6881006ad8710adce57d1384%5E%21/>
-//            // <https://github.com/Genymobile/scrcpy/issues/488#issuecomment-567321437>
-//            format.setFloat(KEY_MAX_FPS_TO_ENCODER, maxFps);
-//        }
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL);
+        // display the very first frame, and recover from bad quality when no new frames
+        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_FRAME_DELAY_US); // µs
+        if (maxFps > 0) {
+            // The key existed privately before Android 10:
+            // <https://android.googlesource.com/platform/frameworks/base/+/625f0aad9f7a259b6881006ad8710adce57d1384%5E%21/>
+            // <https://github.com/Genymobile/scrcpy/issues/488#issuecomment-567321437>
+            format.setFloat(KEY_MAX_FPS_TO_ENCODER, maxFps);
+        }
 
         if (codecOptions != null) {
             for (CodecOption option : codecOptions) {

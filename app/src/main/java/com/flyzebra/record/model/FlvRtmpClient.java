@@ -119,6 +119,7 @@ public class FlvRtmpClient {
         outputBuffer.reset();
         synchronized (lock){
             RtmpClient.write(jniRtmpPointer.get(), frame, frame.length, FLV_RTMP_PACKET_TYPE_VIDEO, ts);
+//            FlyLog.d("send video frame:%s",ByteUtil.bytes2String(frame,16));
         }
     }
 
