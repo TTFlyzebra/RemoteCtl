@@ -20,7 +20,7 @@ public class LocalSocketClient implements ISocketTask {
     private byte[] recvBuffer = new byte[4096];
     private byte[] sendBuffer = new byte[4096];
     private ByteBuffer sendByteBuffer = ByteBuffer.allocateDirect(1280 * 720 * 3 / 2 * 5);
-    private static final Object sendLock = new Object();
+    private final Object sendLock = new Object();
     private AtomicBoolean isStop = new AtomicBoolean(true);
     private String tag;
 
@@ -54,7 +54,6 @@ public class LocalSocketClient implements ISocketTask {
             public void run() {
                 while (!isStop.get()) {
                     try {
-                        FlyLog.e("will read data...........");
                         int len = inputStream.read(recvBuffer);
                         FlyLog.d("recv data len=%d", len);
                     } catch (Exception e) {

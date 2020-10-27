@@ -1,7 +1,5 @@
 package com.flyzebra.record.net;
 
-import android.view.KeyEvent;
-
 import com.flyzebra.util.FlyLog;
 
 import java.io.IOException;
@@ -57,10 +55,8 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
                 inputStream = socket.getInputStream();
                 byte[] recv = new byte[1024];
                 while (!isStop.get()) {
-                    FlyLog.d("RecvSocketTask recv...");
                     int len = inputStream.read(recv);
                     FlyLog.d("recv data len=%d", len);
-                    int keycode = KeyEvent.KEYCODE_BACK;
                     if (len <= 0) {
                         throw new Exception("socket recv error lenght!");
                     }
