@@ -1,28 +1,20 @@
-package com.flyzebra.record.net;
+package com.flyzebra.scrcpy;
 
 import android.graphics.Rect;
 import android.media.MediaCodec;
+import android.os.BatteryManager;
 import android.os.Build;
 
-import com.flyzebra.scrcpy.CodecOption;
-import com.flyzebra.scrcpy.Controller;
-import com.flyzebra.scrcpy.DesktopConnection;
-import com.flyzebra.scrcpy.Device;
-import com.flyzebra.scrcpy.DeviceMessageSender;
-import com.flyzebra.scrcpy.InvalidDisplayIdException;
-import com.flyzebra.scrcpy.Ln;
-import com.flyzebra.scrcpy.Options;
-import com.flyzebra.scrcpy.ScreenEncoder;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.scrcpy.wrappers.ContentProvider;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-public final class ScrcpyServer {
+public final class Server {
 
 
-    private ScrcpyServer() {
+    private Server() {
         // not instantiable
     }
 
@@ -31,37 +23,37 @@ public final class ScrcpyServer {
         final Device device = new Device(options);
         List<CodecOption> codecOptions = CodecOption.parse(options.getCodecOptions());
 
-//        boolean mustDisableShowTouchesOnCleanUp = false;
-//        int restoreStayOn = -1;
-//        if (options.getShowTouches() || options.getStayAwake()) {
-//            try (ContentProvider settings = device.createSettingsProvider()) {
-//                if (options.getShowTouches()) {
-//                    String oldValue = settings.getAndPutValue(ContentProvider.TABLE_SYSTEM, "show_touches", "1");
-//                    // If "show touches" was disabled, it must be disabled back on clean up
-//                    mustDisableShowTouchesOnCleanUp = !"1".equals(oldValue);
-//                }
-//
-//                if (options.getStayAwake()) {
-//                    int stayOn = BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB | BatteryManager.BATTERY_PLUGGED_WIRELESS;
-//                    String oldValue = settings.getAndPutValue(ContentProvider.TABLE_GLOBAL, "stay_on_while_plugged_in", String.valueOf(stayOn));
-//                    try {
-//                        restoreStayOn = Integer.parseInt(oldValue);
-//                        if (restoreStayOn == stayOn) {
-//                            // No need to restore
-//                            restoreStayOn = -1;
-//                        }
-//                    } catch (NumberFormatException e) {
-//                        restoreStayOn = 0;
-//                    }
-//                }
-//            }
-//        }
+        boolean mustDisableShowTouchesOnCleanUp = false;
+        int restoreStayOn = -1;
+        if (options.getShowTouches() || options.getStayAwake()) {
+            try (ContentProvider settings = device.createSettingsProvider()) {
+                if (options.getShowTouches()) {
+                    String oldValue = settings.getAndPutValue(ContentProvider.TABLE_SYSTEM, "show_touches", "1");
+                    // If "show touches" was disabled, it must be disabled back on clean up
+                    mustDisableShowTouchesOnCleanUp = !"1".equals(oldValue);
+                }
 
-//        CleanUp.configure(mustDisableShowTouchesOnCleanUp, restoreStayOn, true);
+                if (options.getStayAwake()) {
+                    int stayOn = BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB | BatteryManager.BATTERY_PLUGGED_WIRELESS;
+                    String oldValue = settings.getAndPutValue(ContentProvider.TABLE_GLOBAL, "stay_on_while_plugged_in", String.valueOf(stayOn));
+                    try {
+                        restoreStayOn = Integer.parseInt(oldValue);
+                        if (restoreStayOn == stayOn) {
+                            // No need to restore
+                            restoreStayOn = -1;
+                        }
+                    } catch (NumberFormatException e) {
+                        restoreStayOn = 0;
+                    }
+                }
+            }
+        }
 
-        try {
-            boolean tunnelForward = options.isTunnelForward();
-            DesktopConnection connection = DesktopConnection.open(device, tunnelForward);
+        CleanUp.configure(mustDisableShowTouchesOnCleanUp, restoreStayOn, true);
+
+        boolean tunnelForward = options.isTunnelForward();
+
+        try (DesktopConnection connection = DesktopConnection.open(device, tunnelForward)) {
             ScreenEncoder screenEncoder = new ScreenEncoder(options.getSendFrameMeta(), options.getBitRate(), options.getMaxFps(), codecOptions);
 
             if (options.getControl()) {
@@ -82,13 +74,10 @@ public final class ScrcpyServer {
             try {
                 // synchronous
                 screenEncoder.streamScreen(device, connection.getVideoFd());
-            } catch (Exception e) {
+            } catch (IOException e) {
                 // this is expected on close
-                Ln.e("Screen streaming stopped");
-                FlyLog.e(e.toString());
+                Ln.d("Screen streaming stopped");
             }
-        }catch (Exception e){
-            FlyLog.e(e.toString());
         }
     }
 
@@ -139,7 +128,7 @@ public final class ScrcpyServer {
         Options options = new Options();
 
         Ln.Level level = Ln.Level.valueOf(args[1].toUpperCase(Locale.ENGLISH));
-        options.setLogLevel(Ln.Level.DEBUG);
+        options.setLogLevel(level);
 
         int maxSize = Integer.parseInt(args[2]) & ~7; // multiple of 8
         options.setMaxSize(maxSize);
@@ -220,7 +209,7 @@ public final class ScrcpyServer {
         }
     }
 
-    public static void start(String... args) throws Exception {
+    public static void main(String... args) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {

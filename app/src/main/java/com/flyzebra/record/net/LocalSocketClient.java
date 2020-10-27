@@ -3,8 +3,8 @@ package com.flyzebra.record.net;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
+import com.flyzebra.scrcpy.DesktopConnection;
 import com.flyzebra.util.FlyLog;
-import com.genymobile.scrcpy.DesktopConnection;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ public class LocalSocketClient implements ISocketTask {
     private Thread sendThread;
     private InputStream inputStream;
     private OutputStream outputStream;
-    private byte[] recvBuffer = new byte[4096];
+    private byte[] recvBuffer = new byte[1280 * 720 * 3 / 2];
     private byte[] sendBuffer = new byte[4096];
     private ByteBuffer sendByteBuffer = ByteBuffer.allocateDirect(1280 * 720 * 3 / 2 * 5);
     private final Object sendLock = new Object();
