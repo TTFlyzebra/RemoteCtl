@@ -1,9 +1,10 @@
-package com.flyzebra.record.service;
+package com.flyzebra.record.net;
 
 import android.graphics.Rect;
 import android.media.MediaCodec;
 import android.os.Build;
 
+import com.flyzebra.util.FlyLog;
 import com.genymobile.scrcpy.CleanUp;
 import com.genymobile.scrcpy.CodecOption;
 import com.genymobile.scrcpy.Controller;
@@ -13,6 +14,7 @@ import com.genymobile.scrcpy.DeviceMessageSender;
 import com.genymobile.scrcpy.InvalidDisplayIdException;
 import com.genymobile.scrcpy.Ln;
 import com.genymobile.scrcpy.Options;
+import com.genymobile.scrcpy.ScreenEncoder;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,10 +60,10 @@ public final class ScrcpyServer {
 
         CleanUp.configure(mustDisableShowTouchesOnCleanUp, restoreStayOn, true);
 
-        //boolean tunnelForward = options.isTunnelForward();
-
-        try (DesktopConnection connection = DesktopConnection.open(device, true)) {
-            //ScreenEncoder screenEncoder = new ScreenEncoder(options.getSendFrameMeta(), options.getBitRate(), options.getMaxFps(), codecOptions);
+        try {
+            boolean tunnelForward = options.isTunnelForward();
+            DesktopConnection connection = DesktopConnection.open(device, tunnelForward);
+            ScreenEncoder screenEncoder = new ScreenEncoder(options.getSendFrameMeta(), options.getBitRate(), options.getMaxFps(), codecOptions);
 
             if (options.getControl()) {
                 final Controller controller = new Controller(device, connection);
@@ -78,13 +80,16 @@ public final class ScrcpyServer {
                 });
             }
 
-//            try {
-//                // synchronous
-//                screenEncoder.streamScreen(device, connection.getVideoFd());
-//            } catch (IOException e) {
-//                // this is expected on close
-//                Ln.d("Screen streaming stopped");
-//            }
+            try {
+                // synchronous
+                screenEncoder.streamScreen(device, connection.getVideoFd());
+            } catch (Exception e) {
+                // this is expected on close
+                Ln.e("Screen streaming stopped");
+                FlyLog.e(e.toString());
+            }
+        }catch (Exception e){
+            FlyLog.e(e.toString());
         }
     }
 

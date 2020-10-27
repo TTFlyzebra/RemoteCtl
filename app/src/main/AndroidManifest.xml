@@ -36,8 +36,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name="com.flyzebra.record.service.RecordService" />
-        <service android:name="com.flyzebra.record.service.ControllerService" />
+        <service android:name="com.flyzebra.record.service.MainService" />
     </application>
 
 </manifest>
