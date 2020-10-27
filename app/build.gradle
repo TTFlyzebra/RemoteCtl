@@ -24,6 +24,13 @@ android {
         versionCode gitCommitCount.toInteger()
         versionName "v1.0."+gitSHA+"."+createTime
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-frtti -fexceptions"
+                abiFilters "arm64-v8a", "armeabi-v7a"
+            }
+        }
     }
 
     signingConfigs {
