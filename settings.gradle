@@ -1,1 +1,1 @@
-include ':app', ':rtmplib'
+include ':remotectl', ':rtmplib'
