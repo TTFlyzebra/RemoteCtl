@@ -67,7 +67,6 @@ public class ScreenEncoder implements Device.RotationListener {
     }
 
     private void internalStreamScreen(Device device, FileDescriptor fd) throws IOException {
-        FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
         MediaFormat format = createFormat(bitRate, maxFps, codecOptions);
         device.setRotationListener(this);
         boolean alive;

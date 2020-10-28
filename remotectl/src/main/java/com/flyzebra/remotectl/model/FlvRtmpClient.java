@@ -4,6 +4,8 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 
 import com.flyzebra.rtmp.RtmpClient;
+import com.flyzebra.utils.ByteUtil;
+import com.flyzebra.utils.FlyLog;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
@@ -119,7 +121,9 @@ public class FlvRtmpClient {
         outputBuffer.reset();
         synchronized (lock){
             RtmpClient.write(jniRtmpPointer.get(), frame, frame.length, FLV_RTMP_PACKET_TYPE_VIDEO, ts);
-//            FlyLog.d("send video frame:%s",ByteUtil.bytes2String(frame,16));
+            if(frameType==5){
+                FlyLog.d("send video frame:%s", ByteUtil.bytes2String(frame,16));
+            }
         }
     }
 
@@ -150,6 +154,7 @@ public class FlvRtmpClient {
     }
 
     public void close() {
+        if (jniRtmpPointer.get() == -1) return;
         RtmpClient.close(jniRtmpPointer.get());
         jniRtmpPointer.set(-1);
     }

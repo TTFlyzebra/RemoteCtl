@@ -1,6 +1,7 @@
 package com.flyzebra.remotectl.connect;
 
 
+import com.flyzebra.remotectl.model.FlvRtmpClient;
 import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
@@ -32,14 +33,13 @@ public class PCSocketTask implements Runnable, ISocketListenter {
             @Override
             public void run() {
                 try {
-                    ScrcpyServer.start("1.14", "DEBUG", "0", "8000000", "12", "-1", "true", "-", "true", "ture", "0", "true", "true", "-");
+                    ScrcpyServer.start("1.14", "DEBUG", "0", "8000000", "12", "-1", "true", "-", "true", "true", "0", "true", "true", "-");
                     FlyLog.e("conect local socket fly_touch ok..");
                 } catch (Exception e) {
                     FlyLog.e(e.toString());
                 }
             }
         }, "ScrcpyServer").start();
-
         mVideoClient = new LocalSocketClient("video");
         mVideoClient.start();
         mControllerClient = new LocalSocketClient("controller");
@@ -59,6 +59,7 @@ public class PCSocketTask implements Runnable, ISocketListenter {
                 socket = new Socket(host, port);
                 inputStream = socket.getInputStream();
                 byte[] recv = new byte[1024];
+                FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
                 startScrcpyServer();
                 while (!isStop.get()) {
                     int len = inputStream.read(recv);
@@ -70,6 +71,7 @@ public class PCSocketTask implements Runnable, ISocketListenter {
             } catch (Exception e) {
                 FlyLog.e(e.toString());
             } finally {
+                FlvRtmpClient.getInstance().close();
                 if(mVideoClient!=null){
                     mVideoClient.stop();
                     mVideoClient = null;
