@@ -53,7 +53,7 @@ public class PCSocketTask implements Runnable, ISocketListenter {
         isRunning.set(true);
         while (!isStop.get()) {
             try {
-                FlyLog.e("try connect controller server...");
+                FlyLog.d("try connect controller server...");
                 String host = "192.168.8.140";
                 int port = 9008;
                 socket = new Socket(host, port);

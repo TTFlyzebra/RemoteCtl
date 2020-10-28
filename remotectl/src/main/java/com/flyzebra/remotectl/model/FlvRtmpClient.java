@@ -47,6 +47,19 @@ public class FlvRtmpClient {
         public static final FlvRtmpClient sInstance = new FlvRtmpClient();
     }
 
+    private void sendData(byte[] data, int type, int ts) {
+        int ret = 0;
+        synchronized (lock) {
+            ret = RtmpClient.write(jniRtmpPointer.get(), data, data.length, type, ts);
+        }
+        if (data[0] == (byte) 0x17) {
+            FlyLog.d("rtmp send:%s", ByteUtil.bytes2String(data, 16));
+        }
+        if (ret != 0) {
+            FlyLog.e("rtmp send error!");
+        }
+    }
+
     public void open(final String url) {
         if (jniRtmpPointer.get() == -1) {
             jniRtmpPointer.set(RtmpClient.open(url, true));
@@ -54,13 +67,11 @@ public class FlvRtmpClient {
         }
     }
 
-    public void sendMetaData(){
+    public void sendMetaData() {
         if (jniRtmpPointer.get() == -1) return;
-        FLvMetaData fLvMetaData = new FLvMetaData(AAC_BITRATE, AAC_SAMPLE_RATE,VIDEO_WIDTH,VIDEO_HEIGHT,VIDEO_FPS);
+        FLvMetaData fLvMetaData = new FLvMetaData(AAC_BITRATE, AAC_SAMPLE_RATE, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS);
         byte[] metaData = fLvMetaData.getMetaData();
-        synchronized (lock){
-            RtmpClient.write(jniRtmpPointer.get(), metaData, metaData.length, FLV_RTMP_PACKET_TYPE_INFO, 0);
-        }
+        sendData(metaData, FLV_RTMP_PACKET_TYPE_INFO, 0);
     }
 
     public void sendVideoSPS(MediaFormat mediaFormat) {
@@ -74,7 +85,7 @@ public class FlvRtmpClient {
         int packetLen = FLV_VIDEO_TAG_LENGTH + 11 + spslength + ppslength;
         final byte[] sps_pps = new byte[packetLen];
         sps_pps[0] = 0x17;
-        sps_pps[1] = 0x00 ;
+        sps_pps[1] = 0x00;
         sps_pps[2] = 0x00;
         sps_pps[3] = 0x00;
         sps_pps[4] = 0x00;
@@ -92,9 +103,7 @@ public class FlvRtmpClient {
         sps_pps[pos] = (byte) 0x01;
         sps_pps[pos + 1] = (byte) ((ppslength >> 8) & 0xFF);
         sps_pps[pos + 2] = (byte) ((ppslength) & 0xFF);
-        synchronized (lock){
-            RtmpClient.write(jniRtmpPointer.get(), sps_pps, sps_pps.length, FLV_RTMP_PACKET_TYPE_VIDEO, 0);
-        }
+        sendData(sps_pps, FLV_RTMP_PACKET_TYPE_VIDEO, 0);
     }
 
     public void sendVideoFrame(ByteBuffer outputBuffer, MediaCodec.BufferInfo mBufferInfo, final int ts) {
@@ -109,7 +118,7 @@ public class FlvRtmpClient {
         int packetLen = FLV_VIDEO_TAG_LENGTH + NALU_HEADER_LENGTH + realDataLength;
         byte[] frame = new byte[packetLen];
         outputBuffer.get(frame, FLV_VIDEO_TAG_LENGTH + NALU_HEADER_LENGTH, realDataLength);
-        frame[0] = (frameType == 5) ? (byte)0x17 : (byte)0x27;
+        frame[0] = (frameType == 5) ? (byte) 0x17 : (byte) 0x27;
         frame[1] = 0x01;
         frame[2] = 0x00;
         frame[3] = 0x00;
@@ -119,12 +128,7 @@ public class FlvRtmpClient {
         frame[7] = (byte) ((realDataLength >> 8) & 0xFF);
         frame[8] = (byte) ((realDataLength) & 0xFF);
         outputBuffer.reset();
-        synchronized (lock){
-            RtmpClient.write(jniRtmpPointer.get(), frame, frame.length, FLV_RTMP_PACKET_TYPE_VIDEO, ts);
-            if(frameType==5){
-                FlyLog.d("send video frame:%s", ByteUtil.bytes2String(frame,16));
-            }
-        }
+        sendData(frame, FLV_RTMP_PACKET_TYPE_VIDEO, ts);
     }
 
     public void sendAudioSPS(MediaFormat format) {
@@ -135,9 +139,7 @@ public class FlvRtmpClient {
         realData.get(sps, FLV_AUDIO_TAG_LENGTH, realData.remaining());
         sps[0] = (byte) 0xAE;
         sps[1] = (byte) 0x00;
-        synchronized (lock){
-            RtmpClient.write(jniRtmpPointer.get(), sps, sps.length, FLV_RTMP_PACKET_TYPE_AUDIO, 0);
-        }
+        sendData(sps, FLV_RTMP_PACKET_TYPE_AUDIO, 0);
     }
 
     public void sendAudioFrame(ByteBuffer realData, final int ts) {
@@ -148,9 +150,7 @@ public class FlvRtmpClient {
         realData.get(frame, FLV_AUDIO_TAG_LENGTH, realData.remaining());
         frame[0] = (byte) 0xAE;
         frame[1] = (byte) 0x01;
-        synchronized (lock){
-            RtmpClient.write(jniRtmpPointer.get(), frame, frame.length, FLV_RTMP_PACKET_TYPE_AUDIO, ts);
-        }
+        sendData(frame, FLV_RTMP_PACKET_TYPE_AUDIO, ts);
     }
 
     public void close() {
