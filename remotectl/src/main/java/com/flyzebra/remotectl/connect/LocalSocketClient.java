@@ -4,6 +4,7 @@ import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
 import com.flyzebra.scrcpy.DesktopConnection;
+import com.flyzebra.utils.ByteUtil;
 import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
@@ -84,7 +85,7 @@ public class LocalSocketClient implements ISocketTask {
                             sendByteBuffer.compact();
                         }
                         outputStream.write(sendBuffer, 0, sendLen);
-                        FlyLog.d("send data len=%d", sendLen);
+                        FlyLog.d("recv:%s", ByteUtil.bytes2String(sendBuffer,Math.min(sendLen,40)));
                     }
                 } catch (Exception e) {
                     FlyLog.e(e.toString());

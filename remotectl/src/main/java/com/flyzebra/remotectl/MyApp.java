@@ -17,7 +17,7 @@ public class MyApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        FlyLog.setTAG("ZEBRA-WCAM-APP");
+        FlyLog.setTAG("ZEBRA-REMOTE");
         //启动服务
         Intent mainintent = new Intent();
         mainintent.setClass(this, MainService.class);
