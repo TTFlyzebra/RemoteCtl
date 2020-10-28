@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
-import com.flyzebra.remotectl.service.MainService;
 import com.flyzebra.remotectl.task.VideoStream;
 
 import java.util.ArrayList;

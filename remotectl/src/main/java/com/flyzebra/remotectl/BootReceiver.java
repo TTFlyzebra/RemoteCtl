@@ -23,7 +23,7 @@ public class BootReceiver extends BroadcastReceiver {
         //接收广播：安装更新后，自动启动自己。
         else if (intent.getAction().equals(Intent.ACTION_PACKAGE_REPLACED)) {
             FlyLog.d(intent.getData()+"");
-            if((intent.getData() + "").contains("com.flyzebra.player")){
+            if((intent.getData() + "").contains("com.flyzebra.remotectl")){
                 FlyLog.d( "recvRatdMessage broadcast(boot package replaced) start >>>>>>>>>>>");
                 startMyself(context);
             }

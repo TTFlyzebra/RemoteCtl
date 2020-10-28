@@ -33,9 +33,6 @@
             android:name=".PlayActivity"
             android:theme="@style/AppThemeFull"
             android:launchMode="singleInstance">
-            <intent-filter>
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <receiver android:name=".BootReceiver">
             <intent-filter>
@@ -47,7 +44,7 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
-        <service android:name=".service.MainService" />
+        <service android:name=".MainService" />
     </application>
 
 </manifest>
