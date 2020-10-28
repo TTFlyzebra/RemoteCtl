@@ -1,11 +1,10 @@
-package com.flyzebra.record.ui;
+package com.flyzebra.remotectl;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
-import com.flyzebra.record.R;
-import com.flyzebra.record.view.ExoPlayerView;
+import com.flyzebra.remotectl.view.ExoPlayerView;
 
 import java.io.File;
 import java.util.ArrayList;

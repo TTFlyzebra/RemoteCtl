@@ -1,4 +1,4 @@
-package com.flyzebra.record.model;
+package com.flyzebra.remotectl.model;
 
 
 import java.util.ArrayList;

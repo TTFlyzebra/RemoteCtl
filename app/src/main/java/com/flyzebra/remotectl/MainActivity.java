@@ -1,4 +1,4 @@
-package com.flyzebra.record.ui;
+package com.flyzebra.remotectl;
 
 import android.Manifest;
 import android.app.Activity;
@@ -12,9 +12,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 
-import com.flyzebra.record.R;
-import com.flyzebra.record.service.MainService;
-import com.flyzebra.record.task.VideoStream;
+import com.flyzebra.remotectl.service.MainService;
+import com.flyzebra.remotectl.task.VideoStream;
 
 import java.util.ArrayList;
 import java.util.List;

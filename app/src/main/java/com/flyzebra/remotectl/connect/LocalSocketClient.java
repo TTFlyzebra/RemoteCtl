@@ -1,10 +1,10 @@
-package com.flyzebra.record.net;
+package com.flyzebra.remotectl.connect;
 
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
 import com.flyzebra.scrcpy.DesktopConnection;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package com.flyzebra.record.service;
+package com.flyzebra.remotectl.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -15,9 +15,9 @@ import android.provider.Settings;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.RemoteViews;
 
-import com.flyzebra.record.net.RecvSocketTask;
-import com.flyzebra.record.ui.MainActivity;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.remotectl.MainActivity;
+import com.flyzebra.remotectl.connect.PCSocketTask;
+import com.flyzebra.utils.FlyLog;
 
 
 public class MainService extends Service  {
@@ -28,13 +28,13 @@ public class MainService extends Service  {
     public static final String MAIN_ACTION_BROADCAST_EXIT = "MAIN_ACTION_BROADCAST_EXIT";
     private String CHANNEL_ONE_ID = "com.flyzebra.record" ;
 
-    private RecvSocketTask recvSocketTask;
+    private PCSocketTask recvSocketTask;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        recvSocketTask = new RecvSocketTask();
+        recvSocketTask = new PCSocketTask();
         recvSocketTask.start();
 
         /* 注册广播 */

@@ -1,4 +1,4 @@
-package com.flyzebra.record.task;
+package com.flyzebra.remotectl.task;
 
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
@@ -10,8 +10,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.Surface;
 
-import com.flyzebra.record.model.FlvRtmpClient;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.remotectl.model.FlvRtmpClient;
+import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

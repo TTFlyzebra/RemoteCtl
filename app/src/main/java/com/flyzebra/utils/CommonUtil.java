@@ -1,4 +1,4 @@
-package com.flyzebra.record.utils;
+package com.flyzebra.utils;
 
 import android.app.Application;
 import android.content.Context;

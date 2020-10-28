@@ -18,7 +18,7 @@ static def getGitCommitCount() {
 android {
     compileSdkVersion 30
     defaultConfig {
-        applicationId "com.flyzebra.record"
+        applicationId "com.flyzebra.remotectl"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode gitCommitCount.toInteger()

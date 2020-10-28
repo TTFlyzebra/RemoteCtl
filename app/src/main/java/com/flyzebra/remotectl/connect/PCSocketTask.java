@@ -1,13 +1,14 @@
-package com.flyzebra.record.net;
+package com.flyzebra.remotectl.connect;
 
-import com.flyzebra.util.FlyLog;
+
+import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class RecvSocketTask implements Runnable, ISocketListenter {
+public class PCSocketTask implements Runnable, ISocketListenter {
     private AtomicBoolean isStop = new AtomicBoolean(true);
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private InputStream inputStream = null;
@@ -15,11 +16,18 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
     private LocalSocketClient mVideoClient;
     private LocalSocketClient mControllerClient;
 
-    public RecvSocketTask() {
+    public PCSocketTask() {
     }
 
     public void start() {
         isStop.set(false);
+        Thread mThread = new Thread(this, "Contorller-recv");
+        mThread.setDaemon(true);
+        mThread.start();
+    }
+
+    private void startScrcpyServer() {
+        FlyLog.e("scrcpy server start...");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -36,9 +44,7 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
         mVideoClient.start();
         mControllerClient = new LocalSocketClient("controller");
         mControllerClient.start();
-
-        Thread mThread = new Thread(this, "Contorller-recv");
-        mThread.start();
+        FlyLog.e("scrcpy server start succes!");
     }
 
     @Override
@@ -53,9 +59,9 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
                 socket = new Socket(host, port);
                 inputStream = socket.getInputStream();
                 byte[] recv = new byte[1024];
+                startScrcpyServer();
                 while (!isStop.get()) {
                     int len = inputStream.read(recv);
-                    FlyLog.d("recv data len=%d", len);
                     if (len <= 0) {
                         throw new Exception("socket recv error lenght!");
                     }
@@ -64,6 +70,13 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
             } catch (Exception e) {
                 FlyLog.e(e.toString());
             } finally {
+                if(mVideoClient!=null){
+                    mVideoClient.stop();
+                    mVideoClient = null;
+                }if(mControllerClient!=null){
+                    mControllerClient.stop();
+                    mControllerClient = null;
+                }
                 if (inputStream != null) {
                     try {
                         inputStream.close();
@@ -97,10 +110,10 @@ public class RecvSocketTask implements Runnable, ISocketListenter {
 
     public void stop() {
         isStop.set(true);
-        if(mVideoClient!=null){
+        if (mVideoClient != null) {
             mVideoClient.stop();
         }
-        if(mControllerClient!=null){
+        if (mControllerClient != null) {
             mControllerClient.stop();
         }
     }

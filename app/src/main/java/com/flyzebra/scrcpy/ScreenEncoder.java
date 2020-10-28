@@ -7,7 +7,7 @@ import android.media.MediaFormat;
 import android.os.IBinder;
 import android.view.Surface;
 
-import com.flyzebra.record.model.FlvRtmpClient;
+import com.flyzebra.remotectl.model.FlvRtmpClient;
 import com.flyzebra.scrcpy.wrappers.SurfaceControl;
 
 import java.io.FileDescriptor;

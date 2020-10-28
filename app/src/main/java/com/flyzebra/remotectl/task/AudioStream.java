@@ -1,4 +1,4 @@
-package com.flyzebra.record.task;
+package com.flyzebra.remotectl.task;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -11,9 +11,9 @@ import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.flyzebra.record.model.FileSaveTask;
-import com.flyzebra.record.model.FlvRtmpClient;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.remotectl.model.FileSaveTask;
+import com.flyzebra.remotectl.model.FlvRtmpClient;
+import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

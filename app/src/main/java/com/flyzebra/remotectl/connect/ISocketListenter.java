@@ -1,4 +1,4 @@
-package com.flyzebra.record.net;
+package com.flyzebra.remotectl.connect;
 
 public interface ISocketListenter {
     void disConnect();

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.flyzebra.record.view.ExoPlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.flyzebra.remotectl.view.ExoPlayerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/exo_play"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="horizontal"
-    tools:context=".ui.MainActivity"/>
+    tools:context=".MainActivity"/>

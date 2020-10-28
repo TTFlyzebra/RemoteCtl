@@ -1,12 +1,12 @@
-package com.flyzebra.record.model;
+package com.flyzebra.remotectl.model;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.SystemClock;
 
-import com.flyzebra.record.utils.TimeUtil;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.utils.FlyLog;
+import com.flyzebra.utils.TimeUtil;
 
 import java.io.File;
 import java.io.IOException;

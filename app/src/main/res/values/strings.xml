@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FlyRecord</string>
+    <string name="app_name">RemoteControl</string>
     <string name="start_record">开始录像</string>
     <string name="stop_record">停止录像</string>
     <string name="play_record">录像回放</string>

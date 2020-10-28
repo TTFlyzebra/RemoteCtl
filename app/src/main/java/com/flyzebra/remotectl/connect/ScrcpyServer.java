@@ -1,4 +1,4 @@
-package com.flyzebra.record.net;
+package com.flyzebra.remotectl.connect;
 
 import android.graphics.Rect;
 import android.media.MediaCodec;
@@ -13,7 +13,7 @@ import com.flyzebra.scrcpy.InvalidDisplayIdException;
 import com.flyzebra.scrcpy.Ln;
 import com.flyzebra.scrcpy.Options;
 import com.flyzebra.scrcpy.ScreenEncoder;
-import com.flyzebra.util.FlyLog;
+import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,10 +58,8 @@ public final class ScrcpyServer {
 //        }
 
 //        CleanUp.configure(mustDisableShowTouchesOnCleanUp, restoreStayOn, true);
-
-        try {
-            boolean tunnelForward = options.isTunnelForward();
-            DesktopConnection connection = DesktopConnection.open(device, tunnelForward);
+        boolean tunnelForward = options.isTunnelForward();
+        try( DesktopConnection connection = DesktopConnection.open(device, tunnelForward)) {
             ScreenEncoder screenEncoder = new ScreenEncoder(options.getSendFrameMeta(), options.getBitRate(), options.getMaxFps(), codecOptions);
 
             if (options.getControl()) {
@@ -82,10 +80,9 @@ public final class ScrcpyServer {
             try {
                 // synchronous
                 screenEncoder.streamScreen(device, connection.getVideoFd());
-            } catch (Exception e) {
+            } catch (IOException e) {
                 // this is expected on close
                 Ln.e("Screen streaming stopped");
-                FlyLog.e(e.toString());
             }
         }catch (Exception e){
             FlyLog.e(e.toString());

@@ -1,4 +1,4 @@
-package com.flyzebra.util;
+package com.flyzebra.utils;
 
 import android.util.Log;
 
@@ -7,7 +7,7 @@ import android.util.Log;
  * Created by FlyZebra on 2016/3/24.
  */
 public class FlyLog {
-    public static final String TAG = "fly_recorder";
+    public static String TAG = "FLYLOG";
     public static String[] filter = {
     };
 
@@ -44,6 +44,23 @@ public class FlyLog {
         Log.v(TAG, buildLogString(logString, args));
     }
 
+    public static void v() {
+        Log.d(TAG, buildLogString(""));
+    }
+
+    public static void w(String logString, Object... args) {
+        for (String aFilter : filter) {
+            if (logString.indexOf(aFilter) == 0) {
+                return;
+            }
+        }
+        Log.w(TAG, buildLogString(logString, args));
+    }
+
+    public static void w() {
+        Log.d(TAG, buildLogString(""));
+    }
+
     public static void e(String logString, Object... args) {
         for (String aFilter : filter) {
             if (logString.indexOf(aFilter) == 0) {
@@ -51,6 +68,10 @@ public class FlyLog {
             }
         }
         Log.e(TAG, buildLogString(logString, args));
+    }
+
+    public static void e() {
+        Log.d(TAG, buildLogString(""));
     }
 
 
@@ -68,19 +89,22 @@ public class FlyLog {
         stringBuilder
                 .append("[")
                 .append(thread.getName())
-                .append("][")
-                .append(thread.getId())
+//                .append("][")
+//                .append(thread.getId())
                 .append("](")
                 .append(caller.getFileName())
                 .append(":")
                 .append(caller.getLineNumber())
                 .append(")")
-                .append(caller.getMethodName())
-                .append("()")
-                .append(">>>>")
+//                .append(caller.getMethodName())
+//                .append("()")
+//                .append(">>>>")
                 .append(str);
 //        }
         return stringBuilder.toString();
     }
 
+    public static void setTAG(String mpclog) {
+        TAG = mpclog;
+    }
 }
