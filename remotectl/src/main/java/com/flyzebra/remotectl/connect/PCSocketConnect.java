@@ -3,13 +3,14 @@ package com.flyzebra.remotectl.connect;
 
 import com.flyzebra.remotectl.model.FlvRtmpClient;
 import com.flyzebra.utils.FlyLog;
+import com.flyzebra.utils.SystemPropTools;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PCSocketTask implements Runnable, ISocketListenter {
+public class PCSocketConnect implements Runnable, ISocketListenter {
     private AtomicBoolean isStop = new AtomicBoolean(true);
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private InputStream inputStream = null;
@@ -17,7 +18,7 @@ public class PCSocketTask implements Runnable, ISocketListenter {
     private LocalSocketClient mVideoClient;
     private LocalSocketClient mControllerClient;
 
-    public PCSocketTask() {
+    public PCSocketConnect() {
     }
 
     public void start() {
@@ -53,8 +54,8 @@ public class PCSocketTask implements Runnable, ISocketListenter {
         isRunning.set(true);
         while (!isStop.get()) {
             try {
-                FlyLog.d("try connect controller server...");
-                String host = "192.168.8.140";
+                FlyLog.w("try connect controller server...");
+                String host = SystemPropTools.get("persist.sys.audio.serverip", "192.168.8.140");
                 int port = 9008;
                 socket = new Socket(host, port);
                 inputStream = socket.getInputStream();
@@ -69,7 +70,7 @@ public class PCSocketTask implements Runnable, ISocketListenter {
                     mControllerClient.send(recv, 0, len);
                 }
             } catch (Exception e) {
-                FlyLog.e(e.toString());
+                FlyLog.w("controller server connect failed!"+e.toString());
             } finally {
                 FlvRtmpClient.getInstance().close();
                 if(mVideoClient!=null){
@@ -100,7 +101,7 @@ public class PCSocketTask implements Runnable, ISocketListenter {
                 break;
             } else {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
