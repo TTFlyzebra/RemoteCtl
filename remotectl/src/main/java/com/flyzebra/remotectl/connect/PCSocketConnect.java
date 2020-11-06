@@ -62,7 +62,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
         isRunning.set(true);
         while (!isStop.get()) {
             try {
-                FlyLog.w("try connect controller server...");
+//                FlyLog.w("try connect controller server...");
                 String host = SystemPropTools.get("persist.sys.audio.serverip", "192.168.8.140");
                 int port = 9008;
                 socket = new Socket(host, port);
@@ -79,7 +79,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                     mControllerClient.send(recv, 0, len);
                 }
             } catch (Exception e) {
-                FlyLog.w("controller server connect failed!"+e.toString());
+//                FlyLog.w("controller server connect failed!"+e.toString());
             } finally {
                 FlvRtmpClient.getInstance().close();
                 if(mScreenVideoClient !=null){
