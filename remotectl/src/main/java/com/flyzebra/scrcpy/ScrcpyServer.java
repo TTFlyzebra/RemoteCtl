@@ -1,18 +1,9 @@
-package com.flyzebra.remotectl.connect;
+package com.flyzebra.scrcpy;
 
 import android.graphics.Rect;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import com.flyzebra.scrcpy.CodecOption;
-import com.flyzebra.scrcpy.Controller;
-import com.flyzebra.scrcpy.DesktopConnection;
-import com.flyzebra.scrcpy.Device;
-import com.flyzebra.scrcpy.DeviceMessageSender;
-import com.flyzebra.scrcpy.InvalidDisplayIdException;
-import com.flyzebra.scrcpy.Ln;
-import com.flyzebra.scrcpy.Options;
-import com.flyzebra.scrcpy.ScreenEncoder;
 import com.flyzebra.utils.FlyLog;
 
 import java.io.IOException;
