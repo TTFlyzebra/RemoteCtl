@@ -19,7 +19,7 @@ public class FlvRtmpClient {
 
     public static final int VIDEO_WIDTH = 360;
     public static final int VIDEO_HEIGHT = 640;
-    public static final int VIDEO_BITRATE = 2500000; // 500Kbps
+    public static final int VIDEO_BITRATE = 2500000; // 2500Kbps
     public static final int VIDEO_IFRAME_INTERVAL = 5; // 2 seconds between I-frames
     public static final int VIDEO_FPS = 24;
     public static final int AAC_SAMPLE_RATE = 44100;
@@ -53,10 +53,10 @@ public class FlvRtmpClient {
             ret = RtmpClient.write(jniRtmpPointer.get(), data, data.length, type, ts);
         }
         if (data[0] == (byte) 0x17) {
-            FlyLog.d("rtmp send:%s", ByteUtil.bytes2String(data, 16));
+            FlyLog.d("rtmp send:%s[ok]", ByteUtil.bytes2String(data, 16));
         }
         if (ret != 0) {
-            FlyLog.e("rtmp send error!");
+            FlyLog.e("rtmp send:%s[error][ret=%d]", ByteUtil.bytes2String(data, 16),ret);
         }
     }
 

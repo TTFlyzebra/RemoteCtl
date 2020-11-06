@@ -13,8 +13,8 @@
  	LOGD("RTMP_OPENING:%s",url);
  	RTMP* rtmp = RTMP_Alloc();
  	if (rtmp == NULL) {
- 		LOGD("RTMP_Alloc=NULL");
- 		return NULL;
+ 		LOGE("RTMP_Alloc retrun null");
+ 		return -1;
  	}
 
  	RTMP_Init(rtmp);
@@ -23,8 +23,8 @@
  	if (!ret) {
  		RTMP_Free(rtmp);
  		rtmp=NULL;
- 		LOGD("RTMP_SetupURL=ret");
- 		return NULL;
+ 		LOGE("RTMP_SetupURL ret=%d",ret);
+ 		return -1;
  	}
  	if (isPublishMode) {
  		RTMP_EnableWrite(rtmp);
@@ -34,8 +34,8 @@
  	if (!ret) {
  		RTMP_Free(rtmp);
  		rtmp=NULL;
- 		LOGD("RTMP_Connect=ret");
- 		return NULL;
+		LOGE("RTMP_Connect ret=%d",ret);
+ 		return -1;
  	}
  	ret = RTMP_ConnectStream(rtmp, 0);
 
@@ -44,8 +44,8 @@
  		RTMP_Close(rtmp);
  		RTMP_Free(rtmp);
  		rtmp=NULL;
- 		LOGD("RTMP_ConnectStream=ret");
- 		return NULL;
+		LOGE("RTMP_ConnectStream ret=%d",ret);
+ 		return -1;
  	}
  	(*env)->ReleaseStringUTFChars(env, url_, url);
  	LOGD("RTMP_OPENED");
@@ -111,7 +111,7 @@
     free(packet);
     (*env)->ReleaseByteArrayElements(env, data, buffer, 0);
     if (!ret) {
-    	LOGD("end write error %d", sockerr);
+    	LOGD("end write sockerr=%d, ret=%d", sockerr,ret);
 		return sockerr;
     }else
     {

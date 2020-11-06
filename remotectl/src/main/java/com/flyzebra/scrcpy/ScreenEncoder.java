@@ -80,10 +80,12 @@ public class ScreenEncoder implements Device.RotationListener {
                 Rect videoRect = screenInfo.getVideoSize().toRect();
                 // does not include the locked video orientation
                 Rect unlockedVideoRect = screenInfo.getUnlockedVideoSize().toRect();
+                unlockedVideoRect.right = FlvRtmpClient.VIDEO_WIDTH;
+                unlockedVideoRect.bottom = FlvRtmpClient.VIDEO_HEIGHT;
                 int videoRotation = screenInfo.getVideoRotation();
                 int layerStack = device.getLayerStack();
 
-                setSize(format, videoRect.width(), videoRect.height());
+//                setSize(format, videoRect.width(), videoRect.height());
                 configure(codec, format);
                 Surface surface = codec.createInputSurface();
                 setDisplaySurface(display, surface, videoRotation, contentRect, unlockedVideoRect, layerStack);
@@ -202,6 +204,8 @@ public class ScreenEncoder implements Device.RotationListener {
 //        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL);
 //        // display the very first frame, and recover from bad quality when no new frames
 //        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_FRAME_DELAY_US); // µs
+        format.setInteger(MediaFormat.KEY_WIDTH, FlvRtmpClient.VIDEO_WIDTH);
+        format.setInteger(MediaFormat.KEY_HEIGHT, FlvRtmpClient.VIDEO_HEIGHT);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, FlvRtmpClient.VIDEO_BITRATE);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, FlvRtmpClient.VIDEO_FPS);

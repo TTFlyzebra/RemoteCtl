@@ -63,8 +63,6 @@ public class VideoStream implements Runnable{
         while (!isStop.get()) {
             int eobIndex = mediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_US);
             switch (eobIndex) {
-                case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                    break;
                 case MediaCodec.INFO_TRY_AGAIN_LATER:
                     break;
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
@@ -129,7 +127,6 @@ public class VideoStream implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void createVirtualDisplay() {
