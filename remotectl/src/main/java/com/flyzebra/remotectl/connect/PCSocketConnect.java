@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PCSocketConnect implements Runnable, ISocketListenter {
+public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClient.IRtmpListener {
     private AtomicBoolean isStop = new AtomicBoolean(true);
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private InputStream inputStream = null;
@@ -51,6 +51,14 @@ public class PCSocketConnect implements Runnable, ISocketListenter {
     @Override
     public void run() {
         FlyLog.d("RecvSocketTask running...");
+        while (isRunning.get()){
+            FlyLog.e("RecvSocketTask is running...");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         isRunning.set(true);
         while (!isStop.get()) {
             try {
@@ -61,6 +69,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter {
                 inputStream = socket.getInputStream();
                 byte[] recv = new byte[1024];
                 FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
+                FlvRtmpClient.getInstance().setListener(this);
                 startScrcpyServer();
                 while (!isStop.get()) {
                     int len = inputStream.read(recv);
@@ -101,7 +110,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter {
                 break;
             } else {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -124,5 +133,11 @@ public class PCSocketConnect implements Runnable, ISocketListenter {
     @Override
     public void disConnect() {
 
+    }
+
+    @Override
+    public void writeError(int error) {
+        stop();
+        start();
     }
 }

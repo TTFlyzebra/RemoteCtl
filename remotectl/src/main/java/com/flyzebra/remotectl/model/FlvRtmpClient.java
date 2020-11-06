@@ -39,6 +39,16 @@ public class FlvRtmpClient {
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
     public static final String RTMP_ADDR = "rtmp://192.168.8.244/live/screen";
 
+    public interface IRtmpListener {
+        void writeError(int error);
+    }
+
+    private IRtmpListener mCallBack;
+
+    public void setListener(IRtmpListener callBack){
+        this.mCallBack = callBack;
+    }
+
     public static FlvRtmpClient getInstance() {
         return FlvRtmpClient.RtmpSendTaskHolder.sInstance;
     }
@@ -52,10 +62,13 @@ public class FlvRtmpClient {
         synchronized (lock) {
             ret = RtmpClient.write(jniRtmpPointer.get(), data, data.length, type, ts);
         }
-        if (data[0] == (byte) 0x17) {
-            FlyLog.d("rtmp send:%s[ok]", ByteUtil.bytes2String(data, 16));
-        }
+//        if (data[0] == (byte) 0x17) {
+//            FlyLog.d("rtmp send:%s[ok]", ByteUtil.bytes2String(data, 16));
+//        }
         if (ret != 0) {
+            if(mCallBack!=null){
+                mCallBack.writeError(ret);
+            }
             FlyLog.e("rtmp send:%s[error][ret=%d]", ByteUtil.bytes2String(data, 16),ret);
         }
     }
