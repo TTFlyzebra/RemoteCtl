@@ -7,6 +7,7 @@ import com.flyzebra.utils.SystemPropTools;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -14,6 +15,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
     private AtomicBoolean isStop = new AtomicBoolean(true);
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private InputStream inputStream = null;
+    private OutputStream outputStream = null;
     private Socket socket = null;
     private LocalSocketClient mScreenVideoClient;
     private LocalSocketClient mControllerClient;
@@ -67,6 +69,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                 int port = 9008;
                 socket = new Socket(host, port);
                 inputStream = socket.getInputStream();
+                outputStream = socket.getOutputStream();
                 byte[] recv = new byte[1024];
                 FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
                 FlvRtmpClient.getInstance().setListener(PCSocketConnect.this);
@@ -93,6 +96,14 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                     try {
                         inputStream.close();
                         inputStream = null;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                        outputStream = null;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

@@ -59,10 +59,18 @@ public class LocalSocketClient implements ISocketTask {
                             FlyLog.e("recv len -1");
                             break;
                         }
-//                        FlyLog.v("recv data len=%d", len);
                     }
                 } catch (Exception e) {
                     FlyLog.e(e.toString());
+                }finally {
+                    if (outputStream != null) {
+                        try {
+                            outputStream.close();
+                            outputStream = null;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }, tag + "-recv");
@@ -84,10 +92,18 @@ public class LocalSocketClient implements ISocketTask {
                             sendByteBuffer.compact();
                         }
                         outputStream.write(sendBuffer, 0, sendLen);
-//                        FlyLog.d("recv:%s", ByteUtil.bytes2String(sendBuffer,Math.min(sendLen,40)));
                     }
                 } catch (Exception e) {
                     FlyLog.e(e.toString());
+                }finally {
+                    if (outputStream != null) {
+                        try {
+                            outputStream.close();
+                            outputStream = null;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }, tag + "-send");
@@ -113,6 +129,22 @@ public class LocalSocketClient implements ISocketTask {
     @Override
     public void stop() {
         isStop.set(true);
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+                inputStream = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+                outputStream = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         synchronized (sendLock) {
             sendLock.notify();
         }
