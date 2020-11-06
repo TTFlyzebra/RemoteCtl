@@ -66,10 +66,10 @@ public class FlvRtmpClient {
 //            FlyLog.d("rtmp send:%s[ok]", ByteUtil.bytes2String(data, 16));
 //        }
         if (ret != 0) {
+            FlyLog.e("rtmp send:%s[error][ret=%d]", ByteUtil.bytes2String(data, 16),ret);
             if(mCallBack!=null){
                 mCallBack.writeError(ret);
             }
-            FlyLog.e("rtmp send:%s[error][ret=%d]", ByteUtil.bytes2String(data, 16),ret);
         }
     }
 

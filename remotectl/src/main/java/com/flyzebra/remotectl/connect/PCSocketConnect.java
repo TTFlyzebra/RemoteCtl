@@ -15,7 +15,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
     private AtomicBoolean isRunning = new AtomicBoolean(false);
     private InputStream inputStream = null;
     private Socket socket = null;
-    private LocalSocketClient mVideoClient;
+    private LocalSocketClient mScreenVideoClient;
     private LocalSocketClient mControllerClient;
 
     public PCSocketConnect() {
@@ -41,8 +41,8 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                 }
             }
         }, "ScrcpyServer").start();
-        mVideoClient = new LocalSocketClient("video");
-        mVideoClient.start();
+        mScreenVideoClient = new LocalSocketClient("video");
+        mScreenVideoClient.start();
         mControllerClient = new LocalSocketClient("controller");
         mControllerClient.start();
         FlyLog.e("scrcpy server start succes!");
@@ -69,7 +69,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                 inputStream = socket.getInputStream();
                 byte[] recv = new byte[1024];
                 FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
-                FlvRtmpClient.getInstance().setListener(this);
+                FlvRtmpClient.getInstance().setListener(PCSocketConnect.this);
                 startScrcpyServer();
                 while (!isStop.get()) {
                     int len = inputStream.read(recv);
@@ -82,9 +82,9 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                 FlyLog.w("controller server connect failed!"+e.toString());
             } finally {
                 FlvRtmpClient.getInstance().close();
-                if(mVideoClient!=null){
-                    mVideoClient.stop();
-                    mVideoClient = null;
+                if(mScreenVideoClient !=null){
+                    mScreenVideoClient.stop();
+                    mScreenVideoClient = null;
                 }if(mControllerClient!=null){
                     mControllerClient.stop();
                     mControllerClient = null;
@@ -122,8 +122,16 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
 
     public void stop() {
         isStop.set(true);
-        if (mVideoClient != null) {
-            mVideoClient.stop();
+        while (isRunning.get()){
+            try {
+                FlyLog.e("RecvSocketTask is running....");
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        if (mScreenVideoClient != null) {
+            mScreenVideoClient.stop();
         }
         if (mControllerClient != null) {
             mControllerClient.stop();
@@ -137,6 +145,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
 
     @Override
     public void writeError(int error) {
+        FlyLog.e("will reset connect!");
         stop();
         start();
     }
