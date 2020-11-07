@@ -65,14 +65,14 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
         isRunning.set(true);
         while (!isStop.get()) {
             try {
-//                FlyLog.w("try connect controller server...");
-                String host = SystemPropTools.get("persist.sys.audio.serverip", "192.168.8.140");
-                int port = 9008;
-                socket = new Socket(host, port);
+                String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.1.87");
+                String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
+                FlyLog.d("try connect controller server:[%s:%d]...",host,port);
+                socket = new Socket(host, Integer.parseInt(port));
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
                 byte[] recv = new byte[1024];
-                FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
+                FlvRtmpClient.getInstance().open();
                 FlvRtmpClient.getInstance().setListener(PCSocketConnect.this);
                 startScrcpyServer();
                 while (!isStop.get()) {
@@ -83,7 +83,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                     mControllerClient.send(recv, 0, len);
                 }
             } catch (Exception e) {
-//                FlyLog.w("controller server connect failed!"+e.toString());
+                FlyLog.e("controller connect server failed!");
             } finally {
                 FlvRtmpClient.getInstance().close();
                 if(mScreenVideoClient !=null){
@@ -122,7 +122,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                 break;
             } else {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

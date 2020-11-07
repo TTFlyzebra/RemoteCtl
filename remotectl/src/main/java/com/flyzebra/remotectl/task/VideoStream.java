@@ -103,7 +103,7 @@ public class VideoStream implements Runnable{
     }
 
     public void start(MediaProjection mediaProjection) {
-        FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
+        FlvRtmpClient.getInstance().open();
         isStop.set(false);
         mMediaProjection = mediaProjection;
         initMediaCodec();

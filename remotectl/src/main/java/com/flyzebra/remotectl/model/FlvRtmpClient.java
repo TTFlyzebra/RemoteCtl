@@ -6,6 +6,7 @@ import android.media.MediaFormat;
 import com.flyzebra.rtmp.RtmpClient;
 import com.flyzebra.utils.ByteUtil;
 import com.flyzebra.utils.FlyLog;
+import com.flyzebra.utils.SystemPropTools;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,7 +38,7 @@ public class FlvRtmpClient {
 
     private static final Object lock = new Object();
     private AtomicLong jniRtmpPointer = new AtomicLong(-1);
-    public static final String RTMP_ADDR = "rtmp://192.168.8.244/live/screen";
+    public static final String RTMP_URL = "rtmp://192.168.1.88/live/screen";
 
     public interface IRtmpListener {
         void writeError(int error);
@@ -73,8 +74,9 @@ public class FlvRtmpClient {
         }
     }
 
-    public void open(final String url) {
+    public void open() {
         if (jniRtmpPointer.get() == -1) {
+            String url = SystemPropTools.get("persist.sys.rtmp.url",RTMP_URL);
             jniRtmpPointer.set(RtmpClient.open(url, true));
             sendMetaData();
         }

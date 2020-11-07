@@ -96,7 +96,7 @@ public class AudioStream {
         public void run() {
             FlyLog.d("send audio task start!");
             while (!isQuit.get()) {
-                FlvRtmpClient.getInstance().open(FlvRtmpClient.RTMP_ADDR);
+                FlvRtmpClient.getInstance().open();
                 int eobIndex = mAudioEncoder.dequeueOutputBuffer(mBufferInfo, WAIT_TIME);
                 switch (eobIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
