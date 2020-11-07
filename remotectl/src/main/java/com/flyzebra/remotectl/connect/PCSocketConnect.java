@@ -67,7 +67,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
             try {
                 String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.1.87");
                 String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
-                FlyLog.d("try connect controller server:[%s:%d]...",host,port);
+                FlyLog.d("try connect controller server:[%s:%s]...",host,port);
                 socket = new Socket(host, Integer.parseInt(port));
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
