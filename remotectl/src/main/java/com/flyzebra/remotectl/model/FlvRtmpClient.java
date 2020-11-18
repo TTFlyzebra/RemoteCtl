@@ -18,13 +18,13 @@ import java.util.concurrent.atomic.AtomicLong;
  **/
 public class FlvRtmpClient {
 
-    public static final int VIDEO_WIDTH = 360;
-    public static final int VIDEO_HEIGHT = 640;
-    public static final int VIDEO_BITRATE = 2500000; // 2500Kbps
-    public static final int VIDEO_IFRAME_INTERVAL = 5; // 2 seconds between I-frames
-    public static final int VIDEO_FPS = 24;
-    public static final int AAC_SAMPLE_RATE = 44100;
-    public static final int AAC_BITRATE = 32 * 1024;
+    public static int VIDEO_WIDTH = 400;
+    public static int VIDEO_HEIGHT = 712;
+    public static int VIDEO_BITRATE = 1000000; // 2500Kbps
+    public static int VIDEO_IFRAME_INTERVAL = 5; // 2 seconds between I-frames
+    public static int VIDEO_FPS = 24;
+    public static int AAC_SAMPLE_RATE = 16000;
+    public static int AAC_BITRATE = 32 * 1024;
 
     public static final int FLV_RTMP_PACKET_TYPE_VIDEO = 9;
     public static final int FLV_RTMP_PACKET_TYPE_AUDIO = 8;

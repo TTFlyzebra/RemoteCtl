@@ -16,7 +16,9 @@ import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.RemoteViews;
 
 import com.flyzebra.remotectl.connect.PCSocketConnect;
+import com.flyzebra.remotectl.model.FlvRtmpClient;
 import com.flyzebra.utils.FlyLog;
+import com.flyzebra.utils.SPUtil;
 
 
 public class MainService extends Service  {
@@ -32,10 +34,13 @@ public class MainService extends Service  {
     @Override
     public void onCreate() {
         super.onCreate();
-
+        FlvRtmpClient.VIDEO_WIDTH = (int) SPUtil.get(this,"VIDEO_WIDTH",400);
+        FlvRtmpClient.VIDEO_HEIGHT =  (int) SPUtil.get(this,"VIDEO_HEIGHT",712);
+        FlvRtmpClient.VIDEO_BITRATE = (int) SPUtil.get(this,"VIDEO_BITRATE",1000000);
+        FlvRtmpClient.VIDEO_IFRAME_INTERVAL = (int) SPUtil.get(this,"VIDEO_IFRAME_INTERVAL",5);
+        FlvRtmpClient.VIDEO_FPS = (int) SPUtil.get(this,"VIDEO_FPS",24);
         recvSocketTask = new PCSocketConnect();
         recvSocketTask.start();
-
         /* 注册广播 */
         broadcastreceiver = new ServiceBroadCast();
         IntentFilter filter = new IntentFilter();
