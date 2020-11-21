@@ -54,7 +54,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
     @Override
     public void run() {
         FlyLog.d("RecvSocketTask running...");
-        while (isRunning.get()){
+        while (isRunning.get()) {
             FlyLog.e("RecvSocketTask is running...");
             try {
                 Thread.sleep(1000);
@@ -67,7 +67,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
             try {
                 String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.1.87");
                 String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
-                FlyLog.d("try connect controller server:[%s:%s]...",host,port);
+                FlyLog.d("try connect controller server:[%s:%s]...", host, port);
                 socket = new Socket(host, Integer.parseInt(port));
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
@@ -83,13 +83,14 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
                     mControllerClient.send(recv, 0, len);
                 }
             } catch (Exception e) {
-                FlyLog.e("controller connect server failed! error:"+e.toString());
+                FlyLog.e("controller connect server failed! error:" + e.toString());
             } finally {
                 FlvRtmpClient.getInstance().close();
-                if(mScreenVideoClient !=null){
+                if (mScreenVideoClient != null) {
                     mScreenVideoClient.stop();
                     mScreenVideoClient = null;
-                }if(mControllerClient!=null){
+                }
+                if (mControllerClient != null) {
                     mControllerClient.stop();
                     mControllerClient = null;
                 }
@@ -134,7 +135,7 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
 
     public void stop() {
         isStop.set(true);
-        while (isRunning.get()){
+        while (isRunning.get()) {
             try {
                 FlyLog.e("RecvSocketTask is running....");
                 Thread.sleep(1000);

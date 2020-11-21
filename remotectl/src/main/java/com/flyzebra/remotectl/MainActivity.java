@@ -16,6 +16,7 @@ import android.widget.EditText;
 import com.flyzebra.remotectl.model.FlvRtmpClient;
 import com.flyzebra.remotectl.task.VideoStream;
 import com.flyzebra.utils.SPUtil;
+import com.flyzebra.utils.SystemPropTools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class MainActivity extends Activity {
     private final int REQUEST_CODE = 102;
     private MediaProjectionManager mMediaProjectionManager;
 
-    private EditText et_width, et_height, et_bitrate, et_fps, et_iframe;
+    private EditText et_width, et_height, et_bitrate, et_fps, et_iframe,et_remoteip,et_remoteport,et_rtmpurl;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,6 +48,9 @@ public class MainActivity extends Activity {
         et_bitrate = findViewById(R.id.et_bitrate);
         et_fps = findViewById(R.id.et_fps);
         et_iframe = findViewById(R.id.et_iframe);
+        et_remoteip = findViewById(R.id.et_remoteip);
+        et_remoteport = findViewById(R.id.et_remoteport);
+        et_rtmpurl = findViewById(R.id.et_rtmpurl);
 
         FlvRtmpClient.VIDEO_WIDTH = (int) SPUtil.get(this, "VIDEO_WIDTH", 400);
         FlvRtmpClient.VIDEO_HEIGHT = (int) SPUtil.get(this, "VIDEO_HEIGHT", 712);
@@ -59,7 +63,12 @@ public class MainActivity extends Activity {
         et_bitrate.setText(String.valueOf(FlvRtmpClient.VIDEO_BITRATE));
         et_fps.setText(String.valueOf(FlvRtmpClient.VIDEO_IFRAME_INTERVAL));
         et_iframe.setText(String.valueOf(FlvRtmpClient.VIDEO_FPS));
-
+        String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.8.140");
+        String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
+        String rtmpurl = SystemPropTools.get("persist.sys.rtmp.url","rtmp://192.168.8.244/live/screen");
+        et_remoteip.setText(host);
+        et_remoteport.setText(port);
+        et_rtmpurl.setText(rtmpurl);
 
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
@@ -134,6 +143,9 @@ public class MainActivity extends Activity {
         SPUtil.set(this, "VIDEO_BITRATE", Integer.valueOf(et_bitrate.getText().toString()));
         SPUtil.set(this, "VIDEO_IFRAME_INTERVAL", Integer.valueOf(et_iframe.getText().toString()));
         SPUtil.set(this, "VIDEO_FPS", Integer.valueOf(et_fps.getText().toString()));
+        SystemPropTools.set("persist.sys.remotectl.ip", et_remoteip.getText().toString());
+        SystemPropTools.set("persist.sys.remotectl.port", et_remoteport.getText().toString());
+        SystemPropTools.set("persist.sys.rtmp.url",et_remoteport.getText().toString());
         FlvRtmpClient.VIDEO_WIDTH = (int) SPUtil.get(this, "VIDEO_WIDTH", 400);
         FlvRtmpClient.VIDEO_HEIGHT = (int) SPUtil.get(this, "VIDEO_HEIGHT", 712);
         FlvRtmpClient.VIDEO_BITRATE = (int) SPUtil.get(this, "VIDEO_BITRATE", 1000000);
