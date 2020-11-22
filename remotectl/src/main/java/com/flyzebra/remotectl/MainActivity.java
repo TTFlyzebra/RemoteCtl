@@ -145,7 +145,7 @@ public class MainActivity extends Activity {
         SPUtil.set(this, "VIDEO_FPS", Integer.valueOf(et_fps.getText().toString()));
         SystemPropTools.set("persist.sys.remotectl.ip", et_remoteip.getText().toString());
         SystemPropTools.set("persist.sys.remotectl.port", et_remoteport.getText().toString());
-        SystemPropTools.set("persist.sys.rtmp.url",et_remoteport.getText().toString());
+        SystemPropTools.set("persist.sys.rtmp.url",et_rtmpurl.getText().toString());
         FlvRtmpClient.VIDEO_WIDTH = (int) SPUtil.get(this, "VIDEO_WIDTH", 400);
         FlvRtmpClient.VIDEO_HEIGHT = (int) SPUtil.get(this, "VIDEO_HEIGHT", 712);
         FlvRtmpClient.VIDEO_BITRATE = (int) SPUtil.get(this, "VIDEO_BITRATE", 1000000);
