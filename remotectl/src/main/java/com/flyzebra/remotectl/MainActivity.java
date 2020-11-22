@@ -11,8 +11,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
+import android.widget.EditText;
 
+import com.flyzebra.remotectl.model.FlvRtmpClient;
 import com.flyzebra.remotectl.task.VideoStream;
+import com.flyzebra.utils.SPUtil;
+import com.flyzebra.utils.SystemPropTools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +36,40 @@ public class MainActivity extends Activity {
     private final int REQUEST_CODE = 102;
     private MediaProjectionManager mMediaProjectionManager;
 
+    private EditText et_width, et_height, et_bitrate, et_fps, et_iframe,et_remoteip,et_remoteport,et_rtmpurl;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        et_width = findViewById(R.id.et_width);
+        et_height = findViewById(R.id.et_height);
+        et_bitrate = findViewById(R.id.et_bitrate);
+        et_fps = findViewById(R.id.et_fps);
+        et_iframe = findViewById(R.id.et_iframe);
+        et_remoteip = findViewById(R.id.et_remoteip);
+        et_remoteport = findViewById(R.id.et_remoteport);
+        et_rtmpurl = findViewById(R.id.et_rtmpurl);
+
+        FlvRtmpClient.VIDEO_WIDTH = (int) SPUtil.get(this, "VIDEO_WIDTH", 400);
+        FlvRtmpClient.VIDEO_HEIGHT = (int) SPUtil.get(this, "VIDEO_HEIGHT", 712);
+        FlvRtmpClient.VIDEO_BITRATE = (int) SPUtil.get(this, "VIDEO_BITRATE", 1000000);
+        FlvRtmpClient.VIDEO_IFRAME_INTERVAL = (int) SPUtil.get(this, "VIDEO_IFRAME_INTERVAL", 5);
+        FlvRtmpClient.VIDEO_FPS = (int) SPUtil.get(this, "VIDEO_FPS", 24);
+
+        et_width.setText(String.valueOf(FlvRtmpClient.VIDEO_WIDTH));
+        et_height.setText(String.valueOf(FlvRtmpClient.VIDEO_HEIGHT));
+        et_bitrate.setText(String.valueOf(FlvRtmpClient.VIDEO_BITRATE));
+        et_fps.setText(String.valueOf(FlvRtmpClient.VIDEO_IFRAME_INTERVAL));
+        et_iframe.setText(String.valueOf(FlvRtmpClient.VIDEO_FPS));
+        String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.8.140");
+        String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
+        String rtmpurl = SystemPropTools.get("persist.sys.rtmp.url","rtmp://192.168.8.244/live/screen");
+        et_remoteip.setText(host);
+        et_remoteport.setText(port);
+        et_rtmpurl.setText(rtmpurl);
+
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
             verifyPermissions();
@@ -104,6 +138,19 @@ public class MainActivity extends Activity {
     }
 
     private void startRecord(MediaProjectionManager mMediaProjectionManager, int resultCode, Intent data) {
+        SPUtil.set(this, "VIDEO_WIDTH", Integer.valueOf(et_width.getText().toString()));
+        SPUtil.set(this, "VIDEO_HEIGHT", Integer.valueOf(et_height.getText().toString()));
+        SPUtil.set(this, "VIDEO_BITRATE", Integer.valueOf(et_bitrate.getText().toString()));
+        SPUtil.set(this, "VIDEO_IFRAME_INTERVAL", Integer.valueOf(et_iframe.getText().toString()));
+        SPUtil.set(this, "VIDEO_FPS", Integer.valueOf(et_fps.getText().toString()));
+        SystemPropTools.set("persist.sys.remotectl.ip", et_remoteip.getText().toString());
+        SystemPropTools.set("persist.sys.remotectl.port", et_remoteport.getText().toString());
+        SystemPropTools.set("persist.sys.rtmp.url",et_remoteport.getText().toString());
+        FlvRtmpClient.VIDEO_WIDTH = (int) SPUtil.get(this, "VIDEO_WIDTH", 400);
+        FlvRtmpClient.VIDEO_HEIGHT = (int) SPUtil.get(this, "VIDEO_HEIGHT", 712);
+        FlvRtmpClient.VIDEO_BITRATE = (int) SPUtil.get(this, "VIDEO_BITRATE", 1000000);
+        FlvRtmpClient.VIDEO_IFRAME_INTERVAL = (int) SPUtil.get(this, "VIDEO_IFRAME_INTERVAL", 5);
+        FlvRtmpClient.VIDEO_FPS = (int) SPUtil.get(this, "VIDEO_FPS", 24);
         moveTaskToBack(true);
         startService(new Intent(this, MainService.class));
 //        VideoStream.getInstance().start(mMediaProjectionManager.getMediaProjection(resultCode, data));
@@ -115,6 +162,12 @@ public class MainActivity extends Activity {
     }
 
     public void playRecord(View view) {
+        sendBroadcast(new Intent(MainService.MAIN_ACTION_BROADCAST_EXIT));
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         startActivity(new Intent(this, PlayActivity.class));
     }
 }

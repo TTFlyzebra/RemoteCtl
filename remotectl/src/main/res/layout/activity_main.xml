@@ -4,24 +4,186 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     tools:context=".MainActivity">
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/start_record"
-        android:onClick="captureAndStartRecord"/>
 
-    <Button
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/stop_record"
-        android:onClick="stopRecord"/>
+        android:gravity="center">
 
-    <Button
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="WIDTH:" />
+
+        <EditText
+            android:id="@+id/et_width"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="HEIGHT:" />
+
+        <EditText
+            android:id="@+id/et_height"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="BITRATE:" />
+
+        <EditText
+            android:id="@+id/et_bitrate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="FPS:" />
+
+        <EditText
+            android:id="@+id/et_fps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="IFRAME:" />
+
+        <EditText
+            android:id="@+id/et_iframe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="IP:" />
+
+        <EditText
+            android:id="@+id/et_remoteip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="PROT:" />
+
+        <EditText
+            android:id="@+id/et_remoteport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="200px"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingRight="10px"
+            android:text="RTMP:" />
+
+        <EditText
+            android:id="@+id/et_rtmpurl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/play_record"
-        android:onClick="playRecord"/>
+        android:layout_marginTop="200px"
+        android:gravity="center">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="captureAndStartRecord"
+            android:text="@string/start_record" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="stopRecord"
+            android:text="@string/stop_record"
+            android:visibility="gone" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="playRecord"
+            android:text="@string/play_record"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </LinearLayout>

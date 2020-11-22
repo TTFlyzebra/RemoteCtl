@@ -136,8 +136,8 @@
     void *(**On*Listener);
 }
 
--keep class com.flyzebra.scrcpy** { *; }
 -keep class com.flyzebra.rtmp** { *; }
+-keep class com.flyzebra.scrcpy** { *; }
 -keep interface com.flyzebra.scrcpy** { *; }
--keep class android.view** { *; }
 -keep interface android.view** { *; }
+-keep interface android.content** { *; }
