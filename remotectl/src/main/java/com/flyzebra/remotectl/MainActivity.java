@@ -61,8 +61,8 @@ public class MainActivity extends Activity {
         et_width.setText(String.valueOf(FlvRtmpClient.VIDEO_WIDTH));
         et_height.setText(String.valueOf(FlvRtmpClient.VIDEO_HEIGHT));
         et_bitrate.setText(String.valueOf(FlvRtmpClient.VIDEO_BITRATE));
-        et_fps.setText(String.valueOf(FlvRtmpClient.VIDEO_IFRAME_INTERVAL));
-        et_iframe.setText(String.valueOf(FlvRtmpClient.VIDEO_FPS));
+        et_fps.setText(String.valueOf(FlvRtmpClient.VIDEO_FPS));
+        et_iframe.setText(String.valueOf(FlvRtmpClient.VIDEO_IFRAME_INTERVAL));
         String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.8.140");
         String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
         String rtmpurl = SystemPropTools.get("persist.sys.rtmp.url","rtmp://192.168.8.244/live/screen");
