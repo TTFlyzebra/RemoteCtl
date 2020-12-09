@@ -76,7 +76,11 @@ public class FlvRtmpClient {
 
     public void open() {
         if (jniRtmpPointer.get() == -1) {
-            String url = SystemPropTools.get("persist.sys.rtmp.url",RTMP_URL);
+            String sID = SystemPropTools.get("persist.sys.rtmp.id", "0");
+            int id = Integer.valueOf(sID);
+            id = (id/10-1)*7+id%10-1;
+            String url = SystemPropTools.get("persist.sys.rtmp.url",RTMP_URL)+"_"+id;
+            FlyLog.d("connect rtmp url=%s", url);
             jniRtmpPointer.set(RtmpClient.open(url, true));
             sendMetaData();
         }

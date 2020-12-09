@@ -65,12 +65,16 @@ public class PCSocketConnect implements Runnable, ISocketListenter, FlvRtmpClien
         isRunning.set(true);
         while (!isStop.get()) {
             try {
-                String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.1.87");
+                String host = SystemPropTools.get("persist.sys.remotectl.ip", "192.168.8.140");
                 String port = SystemPropTools.get("persist.sys.remotectl.port", "9008");
                 FlyLog.d("try connect controller server:[%s:%s]...", host, port);
                 socket = new Socket(host, Integer.parseInt(port));
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
+                String myId = SystemPropTools.get("persist.sys.rtmp.id", "0");
+                FlyLog.d("send myId = [%s]...", myId);
+                outputStream.write(myId.getBytes());
+                FlyLog.d("send myId = [%s] finish.", myId);
                 byte[] recv = new byte[1024];
                 FlvRtmpClient.getInstance().open();
                 FlvRtmpClient.getInstance().setListener(PCSocketConnect.this);
